@@ -52,6 +52,8 @@ class PicoScope5000A:
         Set up input channels
     run_block()
         Start a data collection run and return the data
+    get_interval_from_timebase()
+        Get sampling interval for given timebase
 
     """
 
@@ -106,10 +108,16 @@ class PicoScope5000A:
 
         WIP: this method only collects data on channel A.
 
+        Start a data collection run and collect a number of captures. The data
+        is returned as a twodimensional NumPy array (i.e. a 'list' of
+        captures). An array of time values is also returned.
+
         :param num_pre_samples: number of samples before the trigger
         :param num_post_samples: number of samples after the trigger
-        :timebase: timebase setting (see programmers guide for reference)
-        :num_captures: number of captures to take
+        :param timebase: timebase setting (see programmers guide for reference)
+        :param num_captures: number of captures to take
+
+        :returns: t, data
         """
         data = []
         num_samples = num_pre_samples + num_post_samples
@@ -120,7 +128,24 @@ class PicoScope5000A:
             self._get_values(num_samples)
             data.append(np.array(self._buffer))
         self._stop()
-        return np.array(data)
+
+        interval = self.get_interval_from_timebase(timebase, num_samples)
+        t = interval * np.arange(num_samples)
+        return t, np.array(data)
+
+    def get_interval_from_timebase(self, timebase, num_samples=1000):
+        """Get sampling interval for given timebase.
+
+        :param timebase: timebase setting (see programmers guide for reference)
+        :param num_samples: number of samples required
+
+        :returns: sampling interval in nanoseconds
+        """
+        interval = ctypes.c_float()
+        assert_pico_ok(ps.ps5000aGetTimebase2(
+            self._handle, timebase, num_samples, ctypes.byref(interval), None,
+            0))
+        return interval
 
     def _set_data_buffer(self, channel, num_samples):
         """Set up data buffer.

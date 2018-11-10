@@ -7,5 +7,10 @@ if 'dev' in globals():
     reload(picoscope_5000a)
 
 dev = picoscope_5000a.PicoScope5000A()
-dev.set_channel('A', 'DC', .1)
-data = dev.run_block(1000, 1000, num_captures=10)
+dev.set_channel('A', 'DC', 10)
+t, data = dev.run_block(1000, 1000, timebase=2000, num_captures=10)
+
+figure()
+plot(t / 1e6, data.T)
+xlabel('Time [ms]')
+show()
