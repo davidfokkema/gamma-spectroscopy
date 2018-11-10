@@ -8,6 +8,8 @@ PicoScope5000A
 
 import ctypes
 
+import numpy as np
+
 from picosdk.ps5000a import ps5000a as ps
 from picosdk.functions import assert_pico_ok
 
@@ -48,6 +50,8 @@ class PicoScope5000A:
         close the device
     set_channel()
         Set up input channels
+    run_block()
+        Start a data collection run and return the data
 
     """
 
@@ -95,6 +99,65 @@ class PicoScope5000A:
         range = _get_range_from_value(range)
         assert_pico_ok(ps.ps5000aSetChannel(self._handle, channel, is_enabled,
                                             coupling_type, range, offset))
+
+    def run_block(self, num_pre_samples, num_post_samples, timebase=4,
+                  num_captures=1):
+        """Start a data collection run and return the data.
+
+        WIP: this method only collects data on channel A.
+
+        :param num_pre_samples: number of samples before the trigger
+        :param num_post_samples: number of samples after the trigger
+        :timebase: timebase setting (see programmers guide for reference)
+        :num_captures: number of captures to take
+        """
+        data = []
+        num_samples = num_pre_samples + num_post_samples
+        self._set_data_buffer('A', num_samples)
+        for _ in range(num_captures):
+            self._run_block(num_pre_samples, num_post_samples, timebase)
+            self._wait_for_data()
+            self._get_values(num_samples)
+            data.append(np.array(self._buffer))
+        self._stop()
+        return np.array(data)
+
+    def _set_data_buffer(self, channel, num_samples):
+        """Set up data buffer.
+
+        :param channel: channel name ('A', 'B', etc.)
+        :param num_samples: number of samples required
+        """
+        channel = _get_channel_from_name(channel)
+        self._buffer = (ctypes.c_int16 * num_samples)()
+        assert_pico_ok(ps.ps5000aSetDataBuffer(
+            self._handle, channel, ctypes.byref(self._buffer), num_samples, 0,
+            0))
+
+    def _run_block(self, num_pre_samples, num_post_samples, timebase):
+        """Run in block mode."""
+        assert_pico_ok(ps.ps5000aRunBlock(
+            self._handle, num_pre_samples, num_post_samples, timebase, None, 0,
+            None, None))
+
+    def _wait_for_data(self):
+        """Wait for device to finish data capture."""
+        ready = ctypes.c_int16(0)
+        while not ready:
+            assert_pico_ok(ps.ps5000aIsReady(self._handle,
+                                             ctypes.byref(ready)))
+
+    def _get_values(self, num_samples):
+        """Get data from device and store in buffer."""
+        num_samples = ctypes.c_int32(num_samples)
+        overflow = ctypes.c_int16()
+        assert_pico_ok(ps.ps5000aGetValues(
+            self._handle, 0, ctypes.byref(num_samples), 0, 0, 0,
+            ctypes.byref(overflow)))
+
+    def _stop(self):
+        """Stop data capture."""
+        assert_pico_ok(ps.ps5000aStop(self._handle))
 
 
 def _get_resolution_from_bits(resolution_bits):
