@@ -117,8 +117,24 @@ class PicoScope5000A:
         :param timebase: timebase setting (see programmers guide for reference)
         :param num_captures: number of captures to take
 
-        :returns: t, data
+        :returns: time_values, data
         """
+        data = self._run_block_raw(num_pre_samples, num_post_samples, timebase,
+                                   num_captures)
+
+        num_samples = num_pre_samples + num_post_samples
+        time_values = self._calculate_time_values(timebase, num_samples)
+
+        return time_values, np.array(data)
+
+    def _calculate_time_values(self, timebase, num_samples):
+        """Calculate time values from timebase and number of samples."""
+        interval = self.get_interval_from_timebase(timebase, num_samples)
+        return interval * np.arange(num_samples)
+
+    def _run_block_raw(self, num_pre_samples, num_post_samples, timebase,
+                       num_captures):
+        """Actually perform a data collection run and return raw data."""
         data = []
         num_samples = num_pre_samples + num_post_samples
         self._set_data_buffer('A', num_samples)
@@ -128,10 +144,7 @@ class PicoScope5000A:
             self._get_values(num_samples)
             data.append(np.array(self._buffer))
         self._stop()
-
-        interval = self.get_interval_from_timebase(timebase, num_samples)
-        t = interval * np.arange(num_samples)
-        return t, np.array(data)
+        return data
 
     def get_interval_from_timebase(self, timebase, num_samples=1000):
         """Get sampling interval for given timebase.

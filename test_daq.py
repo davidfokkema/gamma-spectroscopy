@@ -1,4 +1,5 @@
 from importlib import reload
+from matplotlib.pylab import *
 
 from daq import picoscope_5000a
 
