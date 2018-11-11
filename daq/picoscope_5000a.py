@@ -125,12 +125,7 @@ class PicoScope5000A:
         num_samples = num_pre_samples + num_post_samples
         time_values = self._calculate_time_values(timebase, num_samples)
 
-        return time_values, np.array(data)
-
-    def _calculate_time_values(self, timebase, num_samples):
-        """Calculate time values from timebase and number of samples."""
-        interval = self.get_interval_from_timebase(timebase, num_samples)
-        return interval * np.arange(num_samples)
+        return time_values, data
 
     def _run_block_raw(self, num_pre_samples, num_post_samples, timebase,
                        num_captures):
@@ -139,12 +134,17 @@ class PicoScope5000A:
         num_samples = num_pre_samples + num_post_samples
         self._set_data_buffer('A', num_samples)
         for _ in range(num_captures):
-            self._run_block(num_pre_samples, num_post_samples, timebase)
+            self._ps_run_block(num_pre_samples, num_post_samples, timebase)
             self._wait_for_data()
             self._get_values(num_samples)
             data.append(np.array(self._buffer))
         self._stop()
-        return data
+        return np.array(data)
+
+    def _calculate_time_values(self, timebase, num_samples):
+        """Calculate time values from timebase and number of samples."""
+        interval = self.get_interval_from_timebase(timebase, num_samples)
+        return interval * np.arange(num_samples)
 
     def get_interval_from_timebase(self, timebase, num_samples=1000):
         """Get sampling interval for given timebase.
@@ -172,7 +172,7 @@ class PicoScope5000A:
             self._handle, channel, ctypes.byref(self._buffer), num_samples, 0,
             0))
 
-    def _run_block(self, num_pre_samples, num_post_samples, timebase):
+    def _ps_run_block(self, num_pre_samples, num_post_samples, timebase):
         """Run in block mode."""
         assert_pico_ok(ps.ps5000aRunBlock(
             self._handle, num_pre_samples, num_post_samples, timebase, None, 0,
