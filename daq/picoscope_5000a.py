@@ -64,6 +64,10 @@ class PicoScope5000A:
         self._input_ranges = {}
         self.open(serial, resolution_bits)
 
+    def __del__(self):
+        """Instance destructor, close device."""
+        self.close()
+
     def open(self, serial=None, resolution_bits=12):
         """Open the device.
 
