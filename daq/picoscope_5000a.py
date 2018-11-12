@@ -212,6 +212,29 @@ class PicoScope5000A:
         """Stop data capture."""
         assert_pico_ok(ps.ps5000aStop(self._handle))
 
+    def set_trigger(self, channel, threshold, direction, is_enabled=True,
+                    delay=0, auto_trigger=0):
+        """Set the oscilloscope trigger condition.
+
+        :param channel: the source channel for the trigger (e.g. 'A')
+        :param threshold: the trigger threshold (in V)
+        :param direction: the direction in which the signal must move to cause
+            a trigger
+        :param is_enabled: (boolean) enable or disable the trigger
+        :param delay: the delay between the trigger occuring and the start of
+            capturing data, in number of sample periods
+        :param auto_trigger: the maximum amount of time to wait for a trigger
+            before starting capturing data in seconds
+
+        The direction parameter can take values of 'ABOVE', 'BELOW', 'RISING',
+        'FALLING' or 'RISING_OR_FALLING'.
+        """
+        channel = _get_channel_from_name(channel)
+        direction = _get_trigger_direction_from_name(direction)
+        assert_pico_ok(ps.ps5000aSetSimpleTrigger(
+            self._handle, is_enabled, channel, threshold, direction, delay,
+            auto_trigger))
+
 
 def _get_resolution_from_bits(resolution_bits):
     """Return the resolution from the number of bits."""
@@ -250,3 +273,14 @@ def _get_range_from_value(range):
     else:
         raise InvalidParameterError(f"Range {range} V is not supported")
     return ps.PS5000A_RANGE[def_name]
+
+
+def _get_trigger_direction_from_name(direction_name):
+    """Return the trigger direction from the direction name."""
+    if direction_name in ['ABOVE', 'BELOW', 'RISING', 'FALLING',
+                          'RISING_OR_FALLING']:
+        def_name = f"PS5000A_{direction_name}"
+    else:
+        raise InvalidParameterError(f"Trigger direction {direction_name} is "
+                                    "not supported")
+    return ps.PS5000A_THRESHOLD_DIRECTION[def_name]
