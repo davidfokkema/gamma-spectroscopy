@@ -251,6 +251,7 @@ class PicoScope5000A:
         'FALLING' or 'RISING_OR_FALLING'.
         """
         channel = _get_channel_from_name(channel)
+        threshold = self._rescale_V_to_adc(threshold)
         direction = _get_trigger_direction_from_name(direction)
         assert_pico_ok(ps.ps5000aSetSimpleTrigger(
             self._handle, is_enabled, channel, threshold, direction, delay,
