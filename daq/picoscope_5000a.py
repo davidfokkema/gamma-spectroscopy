@@ -61,7 +61,8 @@ class PicoScope5000A:
 
     def __init__(self, serial=None, resolution_bits=12):
         """Instantiate the class and open the device."""
-        self._input_ranges = {}
+        self._input_voltage_ranges = {}
+        self._input_adc_ranges = {}
         self.open(serial, resolution_bits)
 
     def __del__(self):
@@ -106,7 +107,12 @@ class PicoScope5000A:
         range = _get_range_from_value(range_value)
         assert_pico_ok(ps.ps5000aSetChannel(self._handle, channel, is_enabled,
                                             coupling_type, range, offset))
-        self._input_ranges[channel_name] = float(range_value)
+
+        self._input_voltage_ranges[channel_name] = float(range_value)
+        max_adc_value = ctypes.c_int16()
+        assert_pico_ok(ps.ps5000aMaximumValue(self._handle,
+                                              ctypes.byref(max_adc_value)))
+        self._input_adc_ranges[channel_name] = max_adc_value.value
 
     def run_block(self, num_pre_samples, num_post_samples, timebase=4,
                   num_captures=1):
@@ -131,7 +137,7 @@ class PicoScope5000A:
 
         num_samples = num_pre_samples + num_post_samples
         time_values = self._calculate_time_values(timebase, num_samples)
-        data = self._rescale_data(data)
+        data = self._rescale_adc_to_V(data)
 
         return time_values, data
 
@@ -154,16 +160,27 @@ class PicoScope5000A:
         interval = self.get_interval_from_timebase(timebase, num_samples)
         return interval * np.arange(num_samples) * 1e-9
 
-    def _rescale_data(self, data):
+    def _rescale_adc_to_V(self, data):
         """Rescale the ADC data and return float values in volts.
 
         WIP: this method only rescales correctly for channel A.
         """
-        input_range = self._input_ranges['A']
-        max_adc_value = ctypes.c_int16()
-        assert_pico_ok(ps.ps5000aMaximumValue(self._handle,
-                                              ctypes.byref(max_adc_value)))
-        return (input_range * data) / max_adc_value
+        voltage_range = self._input_voltage_ranges['A']
+        max_adc_value = self._input_adc_ranges['A']
+        return (voltage_range * data) / max_adc_value
+
+    def _rescale_V_to_adc(self, data):
+        """Rescale float values in volts to ADC values.
+
+        WIP: this method only rescales correctly for channel A.
+        """
+        voltage_range = self._input_voltage_ranges['A']
+        max_adc_value = self._input_adc_ranges['A']
+        output = max_adc_value * data / voltage_range
+        try:
+            return output.astype(np.int16)
+        except AttributeError:
+            return int(output)
 
     def get_interval_from_timebase(self, timebase, num_samples=1000):
         """Get sampling interval for given timebase.
