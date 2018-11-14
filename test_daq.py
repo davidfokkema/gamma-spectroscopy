@@ -21,8 +21,8 @@ data = tables.open_file('data.h5', 'w')
 table = data.create_table('/', 'events', Gammas)
 
 dev = picoscope_5000a.PicoScope5000A()
-dev.set_channel('A', 'DC', .1, offset=0)
-dev.set_trigger('A', 0, 'FALLING')
+dev.set_channel('A', 'DC', .5, offset=.4)
+dev.set_trigger('A', -0.1, 'FALLING')
 
 N = 0
 t0 = time.time()
