@@ -62,6 +62,7 @@ class PicoScope5000A:
     def __init__(self, serial=None, resolution_bits=12):
         """Instantiate the class and open the device."""
         self._input_voltage_ranges = {}
+        self._input_offsets = {}
         self._input_adc_ranges = {}
         self.open(serial, resolution_bits)
 
@@ -109,6 +110,7 @@ class PicoScope5000A:
                                             coupling_type, range, offset))
 
         self._input_voltage_ranges[channel_name] = float(range_value)
+        self._input_offsets[channel_name] = float(offset)
         max_adc_value = ctypes.c_int16()
         assert_pico_ok(ps.ps5000aMaximumValue(self._handle,
                                               ctypes.byref(max_adc_value)))
@@ -166,8 +168,9 @@ class PicoScope5000A:
         WIP: this method only rescales correctly for channel A.
         """
         voltage_range = self._input_voltage_ranges['A']
+        offset = self._input_offsets['A']
         max_adc_value = self._input_adc_ranges['A']
-        return (voltage_range * data) / max_adc_value
+        return (voltage_range * data) / max_adc_value - offset
 
     def _rescale_V_to_adc(self, data):
         """Rescale float values in volts to ADC values.
@@ -175,8 +178,9 @@ class PicoScope5000A:
         WIP: this method only rescales correctly for channel A.
         """
         voltage_range = self._input_voltage_ranges['A']
+        offset = self._input_offsets['A']
         max_adc_value = self._input_adc_ranges['A']
-        output = max_adc_value * data / voltage_range
+        output = max_adc_value * (data + offset) / voltage_range
         try:
             return output.astype(np.int16)
         except AttributeError:
