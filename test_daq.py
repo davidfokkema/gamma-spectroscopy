@@ -36,9 +36,11 @@ try:
     while True:
         t, trace = dev.run_block(pre_trigger_samples, post_trigger_samples,
                                  timebase)
-        row['t'] = time.time()
-        row['trace'] = trace
-        row.append()
+        peak_value = trace.min()
+        if .2 <= peak_value < .4:
+            row['t'] = time.time()
+            row['trace'] = trace
+            row.append()
         N += 1
 except KeyboardInterrupt:
     pass
