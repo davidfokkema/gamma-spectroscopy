@@ -1,5 +1,6 @@
 import tables
 
+import numpy as np
 import matplotlib.pylab as plt
 
 
@@ -12,21 +13,21 @@ plt.plot(t * 1e6, traces[:50,].T * 1e3)
 plt.xlabel("Time [us]")
 plt.ylabel("Voltage [mV]")
 
-plt.figure()
-plt.title("Uncorrected pulseheights")
-ph = -traces.min(axis=1)
-plt.hist(ph, bins=100, histtype='step', log=True)
+# plt.figure()
+# plt.title("Uncorrected pulseheights")
+# ph = -traces.min(axis=1)
+# plt.hist(ph, bins=100, histtype='step', log=True)
 
 plt.figure()
 plt.title("Pulseheights corrected for baseline")
-bl = traces[:,:5].mean(axis=1)
+bl = traces[:,:10].mean(axis=1)
 ph = -(traces.T - bl).min(axis=0)
-plt.hist(ph, bins=100, histtype='step', log=False)
+plt.hist(ph, bins=np.linspace(0, 1., 4096), histtype='step', log=True)
 
-plt.figure()
-plt.title("Pulseintegrals corrected for baseline (no rejection)")
-bl = traces[:,:5].mean(axis=1)
-pi = -(traces.T - bl).sum(axis=0)
-plt.hist(pi, bins=100, histtype='step', log=True)
+# plt.figure()
+# plt.title("Pulseintegrals corrected for baseline (no rejection)")
+# bl = traces[:,:5].mean(axis=1)
+# pi = -(traces.T - bl).sum(axis=0)
+# plt.hist(pi, bins=100, histtype='step', log=True)
 
 plt.show()

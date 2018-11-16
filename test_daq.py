@@ -33,15 +33,15 @@ N = 0
 t0 = time.time()
 row = table.row
 try:
-    while True:
+    while N < 5000:
         t, trace = dev.run_block(pre_trigger_samples, post_trigger_samples,
                                  timebase)
-        peak_value = trace.min()
-        if .2 <= peak_value < .4:
+        peak_value = -trace.min()
+        if .234 <= peak_value < .254:
             row['t'] = time.time()
             row['trace'] = trace
             row.append()
-        N += 1
+            N += 1
 except KeyboardInterrupt:
     pass
 t1 = time.time()
