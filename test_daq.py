@@ -5,10 +5,10 @@ import tables
 from daq import picoscope_5000a
 
 
-resolution = 12
-timebase = 2
-pre_trigger_samples = 50
-post_trigger_samples = 200
+resolution = 14
+timebase = 3
+pre_trigger_samples = 25
+post_trigger_samples = 100
 
 
 class Gammas(tables.IsDescription):
