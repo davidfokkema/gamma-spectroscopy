@@ -8,7 +8,7 @@ from daq import picoscope_5000a
 resolution = 12
 timebase = 2
 pre_trigger_samples = 200
-post_trigger_samples = 50000
+post_trigger_samples = 1300
 
 
 class Gammas(tables.IsDescription):
@@ -22,8 +22,8 @@ data = tables.open_file('data.h5', 'w')
 table = data.create_table('/', 'events', Gammas)
 
 dev = picoscope_5000a.PicoScope5000A(resolution_bits=resolution)
-dev.set_channel('A', 'DC', .5, offset=.4)
-dev.set_trigger('A', 0, 'FALLING')
+dev.set_channel('A', 'DC', 5, offset=-4.8)
+dev.set_trigger('A', .1, 'RISING')
 
 dt = dev.get_interval_from_timebase(timebase, pre_trigger_samples +
                                     post_trigger_samples)
@@ -33,15 +33,15 @@ N = 0
 t0 = time.time()
 row = table.row
 try:
-    while N < 5000:
+    while True:
         t, trace = dev.run_block(pre_trigger_samples, post_trigger_samples,
                                  timebase)
-        peak_value = -trace.min()
-        if .234 <= peak_value < .254:
-            row['t'] = time.time()
-            row['trace'] = trace
-            row.append()
-            N += 1
+        # peak_value = -trace.min()
+        # if .234 <= peak_value < .254:
+        row['t'] = time.time()
+        row['trace'] = trace
+        row.append()
+        N += 1
 except KeyboardInterrupt:
     pass
 t1 = time.time()
