@@ -198,7 +198,7 @@ class PicoScope5000A:
         assert_pico_ok(ps.ps5000aGetTimebase2(
             self._handle, timebase, num_samples, ctypes.byref(interval), None,
             0))
-        return interval
+        return interval.value
 
     def _set_data_buffer(self, channel, num_samples):
         """Set up data buffer.
