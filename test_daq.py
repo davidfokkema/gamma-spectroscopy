@@ -7,7 +7,7 @@ from daq import picoscope_5000a
 
 timebase = 20
 pre_trigger_samples = 10
-post_trigger_samples = 20
+post_trigger_samples = 200
 
 
 class Gammas(tables.IsDescription):
@@ -21,8 +21,8 @@ data = tables.open_file('data.h5', 'w')
 table = data.create_table('/', 'events', Gammas)
 
 dev = picoscope_5000a.PicoScope5000A()
-dev.set_channel('A', 'DC', .2, offset=.09)
-dev.set_trigger('A', -0.02, 'FALLING')
+dev.set_channel('A', 'DC', .5, offset=.24)
+dev.set_trigger('A', 0, 'FALLING')
 
 N = 0
 t0 = time.time()
