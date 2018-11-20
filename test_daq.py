@@ -6,9 +6,9 @@ from daq import picoscope_5000a
 
 
 resolution = 12
-timebase = 2
-pre_trigger_samples = 200
-post_trigger_samples = 1300
+timebase = 3
+pre_trigger_samples = 100
+post_trigger_samples = 50
 
 
 class Gammas(tables.IsDescription):
@@ -22,8 +22,8 @@ data = tables.open_file('data.h5', 'w')
 table = data.create_table('/', 'events', Gammas)
 
 dev = picoscope_5000a.PicoScope5000A(resolution_bits=resolution)
-dev.set_channel('A', 'DC', 5, offset=-4.8)
-dev.set_trigger('A', .1, 'RISING')
+dev.set_channel('A', 'DC', .5, offset=.4)
+dev.set_trigger('A', 0.04, 'FALLING')
 
 dt = dev.get_interval_from_timebase(timebase, pre_trigger_samples +
                                     post_trigger_samples)
@@ -33,7 +33,7 @@ N = 0
 t0 = time.time()
 row = table.row
 try:
-    while True:
+    while time.time() - t0 < 180:
         t, trace = dev.run_block(pre_trigger_samples, post_trigger_samples,
                                  timebase)
         # peak_value = -trace.min()
