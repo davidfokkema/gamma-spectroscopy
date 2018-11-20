@@ -212,11 +212,12 @@ class PicoScope5000A:
             self._handle, channel, ctypes.byref(self._buffer), num_samples, 0,
             0))
 
-    def _ps_run_block(self, num_pre_samples, num_post_samples, timebase):
+    def _ps_run_block(self, num_pre_samples, num_post_samples, timebase,
+                      callback=None):
         """Run in block mode."""
         assert_pico_ok(ps.ps5000aRunBlock(
             self._handle, num_pre_samples, num_post_samples, timebase, None, 0,
-            None, None))
+            callback, None))
 
     def _wait_for_data(self):
         """Wait for device to finish data capture."""

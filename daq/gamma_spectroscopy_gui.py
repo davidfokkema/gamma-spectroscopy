@@ -1,16 +1,41 @@
+import ctypes
 import sys
 
 from PyQt5 import QtWidgets, QtCore
 
+from picoscope_5000a import PicoScope5000A
+
+
+def create_callback(signal):
+    @ctypes.CFUNCTYPE(None, ctypes.c_int16, ctypes.c_int, ctypes.c_void_p)
+    def my_callback(handle, status, parameters):
+        print("callback")
+        signal.emit()
+    return my_callback
+
 
 class UserInterface(QtWidgets.QWidget):
+
+    new_data_signal = QtCore.pyqtSignal()
 
     def __init__(self):
         super().__init__()
 
         self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.fetch_data)
+        self.timer.timeout.connect(self.start_run)
+
+        self.new_data_signal.connect(self.fetch_data)
+        self.callback = create_callback(self.new_data_signal)
+
+        self.scope = PicoScope5000A()
+        self.scope.set_channel('A', 'DC', 50e-3)
+
         self.timer.start(1000)
+
+    @QtCore.pyqtSlot()
+    def start_run(self):
+        print("Starting run...")
+        self.scope._ps_run_block(100, 100, 4, self.callback)
 
     @QtCore.pyqtSlot()
     def fetch_data(self):
