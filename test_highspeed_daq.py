@@ -7,11 +7,12 @@ dev = picoscope_5000a.PicoScope5000A()
 dev.set_channel('A', 'DC', .5)
 # dev.set_trigger('A', 0.04, 'FALLING')
 
+NUM_CAPTURES = 10000
 N = 0
 t0 = time.time()
 while time.time() - t0 < 5:
-    t, trace = dev.measure(100, 100, 2)
-    N += 1
+    dev.measure_adc_values(1000, 1000, 2, num_captures=NUM_CAPTURES)
+    N += NUM_CAPTURES
 t1 = time.time()
 
 print(f"Event rate was {N / (t1 - t0):.1f} Hz.")

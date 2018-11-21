@@ -154,9 +154,9 @@ class PicoScope5000A:
 
         WIP: this method only collects data on channel A.
 
-        Start a data collection run and collect a number of captures. The data
-        is returned as a list of NumPy arrays (i.e. a list of captures)
-        with unconverted ADC values.
+        Start a data collection run in 'rapid block mode' and collect a number
+        of captures. The data is returned as a list of NumPy arrays (i.e. a
+        list of captures) with unconverted ADC values.
 
         :param num_pre_samples: number of samples before the trigger
         :param num_post_samples: number of samples after the trigger
@@ -165,17 +165,16 @@ class PicoScope5000A:
 
         :returns: data
         """
-        data = []
         num_samples = num_pre_samples + num_post_samples
-        self._set_data_buffer('A', num_samples)
-        for _ in range(num_captures):
-            self._ps_run_block(num_pre_samples, num_post_samples, timebase,
-                               self.callback)
-            self._wait_for_data()
-            self._get_values(num_samples)
-            data.append(np.array(self._buffer))
+        self._set_memory_segments(num_captures, num_samples)
+        self._set_data_buffer('A', num_samples, num_captures)
+        self._run_block(num_pre_samples, num_post_samples, timebase,
+                        num_captures, self.callback)
+        self._wait_for_data()
+        self._get_values(num_samples, num_captures)
+
         self._stop()
-        return data
+        return self._buffers
 
     def _calculate_time_values(self, timebase, num_samples):
         """Calculate time values from timebase and number of samples."""
@@ -220,21 +219,45 @@ class PicoScope5000A:
             0))
         return interval.value
 
-    def _set_data_buffer(self, channel, num_samples):
+    def _set_memory_segments(self, num_segments, num_samples):
+        """Set up memory segments in the device.
+
+        For multiple captures, the device's memory must be divided into
+        segments, one for each capture. If the memory cannot contain the
+        required number of samples per segment, an InvalidParameterError is
+        raised.
+
+        :param num_segments: the number of memory segments.
+        :param num_samples: the number of required samples per capture.
+        """
+        max_samples = ctypes.c_int32()
+        assert_pico_ok(ps.ps5000aMemorySegments(self._handle, num_segments,
+                                                ctypes.byref(max_samples)))
+        max_samples = max_samples.value
+        if max_samples < num_samples:
+            raise InvalidParameterError(
+                f"A memory segment can only fit {max_samples}, but "
+                f"{num_samples} are required.")
+
+    def _set_data_buffer(self, channel, num_samples, num_captures=1):
         """Set up data buffer.
 
         :param channel: channel name ('A', 'B', etc.)
         :param num_samples: number of samples required
+        :param num_captures: number of captures
         """
         channel = _get_channel_from_name(channel)
-        self._buffer = (ctypes.c_int16 * num_samples)()
-        assert_pico_ok(ps.ps5000aSetDataBuffer(
-            self._handle, channel, ctypes.byref(self._buffer), num_samples, 0,
-            0))
+        self._buffers = [(ctypes.c_int16 * num_samples)() for i in
+                         range(num_captures)]
+        for segment in range(num_captures):
+            assert_pico_ok(ps.ps5000aSetDataBuffer(
+                self._handle, channel, ctypes.byref(self._buffers[segment]), num_samples,
+                segment, 0))
 
-    def _ps_run_block(self, num_pre_samples, num_post_samples, timebase,
-                      callback=None):
+    def _run_block(self, num_pre_samples, num_post_samples, timebase,
+                   num_captures, callback=None):
         """Run in block mode."""
+        assert_pico_ok(ps.ps5000aSetNoOfCaptures(self._handle, num_captures))
         assert_pico_ok(ps.ps5000aRunBlock(
             self._handle, num_pre_samples, num_post_samples, timebase, None, 0,
             callback, None))
@@ -243,12 +266,12 @@ class PicoScope5000A:
         """Wait for device to finish data capture."""
         self.data_is_ready.wait()
 
-    def _get_values(self, num_samples):
+    def _get_values(self, num_samples, num_captures):
         """Get data from device and store in buffer."""
-        num_samples = ctypes.c_int32(num_samples)
-        overflow = ctypes.c_int16()
-        assert_pico_ok(ps.ps5000aGetValues(
-            self._handle, 0, ctypes.byref(num_samples), 0, 0, 0,
+        num_samples = ctypes.c_uint32(num_samples)
+        overflow = (ctypes.c_int16 * num_captures)()
+        assert_pico_ok(ps.ps5000aGetValuesBulk(
+            self._handle, ctypes.byref(num_samples), 0, num_captures - 1, 0, 0,
             ctypes.byref(overflow)))
         self.data_is_ready.clear()
 
