@@ -1,7 +1,9 @@
 import ctypes
+import os.path
 import sys
 
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import uic, QtWidgets, QtCore
+import pyqtgraph
 
 from picoscope_5000a import PicoScope5000A
 
@@ -14,12 +16,15 @@ def create_callback(signal):
     return my_callback
 
 
-class UserInterface(QtWidgets.QWidget):
+class UserInterface(QtWidgets.QMainWindow):
 
     new_data_signal = QtCore.pyqtSignal()
 
     def __init__(self):
         super().__init__()
+
+        ui_path = 'gamma_spectroscopy_gui.ui'
+        uic.loadUi(ui_path, self)
 
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.start_run)
@@ -31,6 +36,8 @@ class UserInterface(QtWidgets.QWidget):
         self.scope.set_channel('A', 'DC', 50e-3)
 
         self.timer.start(1000)
+
+        self.show()
 
     @QtCore.pyqtSlot()
     def start_run(self):
