@@ -7,6 +7,7 @@ PicoScope5000A
 """
 
 import ctypes
+from threading import Event
 
 import numpy as np
 
@@ -64,6 +65,8 @@ class PicoScope5000A:
         self._input_voltage_ranges = {}
         self._input_offsets = {}
         self._input_adc_ranges = {}
+        self.data_is_ready = Event()
+        self.callback = callback_factory(self.data_is_ready)
         self.open(serial, resolution_bits)
 
     def __del__(self):
@@ -150,7 +153,8 @@ class PicoScope5000A:
         num_samples = num_pre_samples + num_post_samples
         self._set_data_buffer('A', num_samples)
         for _ in range(num_captures):
-            self._ps_run_block(num_pre_samples, num_post_samples, timebase)
+            self._ps_run_block(num_pre_samples, num_post_samples, timebase,
+                               self.callback)
             self._wait_for_data()
             self._get_values(num_samples)
             data.append(np.array(self._buffer))
@@ -221,10 +225,7 @@ class PicoScope5000A:
 
     def _wait_for_data(self):
         """Wait for device to finish data capture."""
-        ready = ctypes.c_int16(0)
-        while not ready:
-            assert_pico_ok(ps.ps5000aIsReady(self._handle,
-                                             ctypes.byref(ready)))
+        self.data_is_ready.wait()
 
     def _get_values(self, num_samples):
         """Get data from device and store in buffer."""
@@ -233,6 +234,7 @@ class PicoScope5000A:
         assert_pico_ok(ps.ps5000aGetValues(
             self._handle, 0, ctypes.byref(num_samples), 0, 0, 0,
             ctypes.byref(overflow)))
+        self.data_is_ready.clear()
 
     def _stop(self):
         """Stop data capture."""
@@ -311,3 +313,12 @@ def _get_trigger_direction_from_name(direction_name):
         raise InvalidParameterError(f"Trigger direction {direction_name} is "
                                     "not supported")
     return ps.PS5000A_THRESHOLD_DIRECTION[def_name]
+
+
+def callback_factory(event):
+    """Return callback that will signal event when called."""
+    @ctypes.CFUNCTYPE(None, ctypes.c_int16, ctypes.c_int, ctypes.c_void_p)
+    def data_is_ready_callback(handle, status, parameters):
+        """Signal that data is ready when called by PicoSDK."""
+        event.set()
+    return data_is_ready_callback
