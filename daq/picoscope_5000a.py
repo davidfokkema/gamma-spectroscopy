@@ -5,6 +5,8 @@ Classes
 PicoScope5000A
     Interface to a 5000 Series PicoScope.
 """
+# WIP: disable all channels on startup
+# WIP: determine of channels C and D are available
 
 import ctypes
 from threading import Event
@@ -119,8 +121,8 @@ class PicoScope5000A:
                                               ctypes.byref(max_adc_value)))
         self._input_adc_ranges[channel_name] = max_adc_value.value
 
-    def run_block(self, num_pre_samples, num_post_samples, timebase=4,
-                  num_captures=1):
+    def measure(self, num_pre_samples, num_post_samples, timebase=4,
+                num_captures=1):
         """Start a data collection run and return the data.
 
         WIP: this method only collects data on channel A.
@@ -137,18 +139,32 @@ class PicoScope5000A:
 
         :returns: time_values, data
         """
-        data = self._run_block_raw(num_pre_samples, num_post_samples, timebase,
-                                   num_captures)
+        data = self.measure_adc_values(num_pre_samples, num_post_samples,
+                                       timebase, num_captures)
 
         num_samples = num_pre_samples + num_post_samples
         time_values = self._calculate_time_values(timebase, num_samples)
-        data = self._rescale_adc_to_V(data)
+        data = self._rescale_adc_to_V(np.array(data))
 
         return time_values, data
 
-    def _run_block_raw(self, num_pre_samples, num_post_samples, timebase,
-                       num_captures):
-        """Actually perform a data collection run and return raw data."""
+    def measure_adc_values(self, num_pre_samples, num_post_samples, timebase,
+                           num_captures):
+        """Start a data collection run and return the data in ADC values.
+
+        WIP: this method only collects data on channel A.
+
+        Start a data collection run and collect a number of captures. The data
+        is returned as a list of NumPy arrays (i.e. a list of captures)
+        with unconverted ADC values.
+
+        :param num_pre_samples: number of samples before the trigger
+        :param num_post_samples: number of samples after the trigger
+        :param timebase: timebase setting (see programmers guide for reference)
+        :param num_captures: number of captures to take
+
+        :returns: data
+        """
         data = []
         num_samples = num_pre_samples + num_post_samples
         self._set_data_buffer('A', num_samples)
@@ -159,7 +175,7 @@ class PicoScope5000A:
             self._get_values(num_samples)
             data.append(np.array(self._buffer))
         self._stop()
-        return np.array(data)
+        return data
 
     def _calculate_time_values(self, timebase, num_samples):
         """Calculate time values from timebase and number of samples."""

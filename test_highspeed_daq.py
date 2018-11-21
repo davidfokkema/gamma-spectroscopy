@@ -10,7 +10,7 @@ dev.set_channel('A', 'DC', .5)
 N = 0
 t0 = time.time()
 while time.time() - t0 < 5:
-    t, trace = dev.run_block(100, 100, 2)
+    t, trace = dev.measure(100, 100, 2)
     N += 1
 t1 = time.time()
 
