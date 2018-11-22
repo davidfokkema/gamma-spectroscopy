@@ -10,6 +10,7 @@ traces = data.root.events.col('trace')
 
 plt.figure()
 plt.plot(t * 1e6, traces[:50].T * 1e3)
+plt.ylim(-500, 100)
 plt.xlabel("Time [us]")
 plt.ylabel("Voltage [mV]")
 

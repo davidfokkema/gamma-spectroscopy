@@ -6,9 +6,10 @@ from daq import picoscope_5000a
 
 
 resolution = 12
-timebase = 3
-pre_trigger_samples = 100
-post_trigger_samples = 50
+timebase = 2
+pre_trigger_samples = 200
+post_trigger_samples = 150
+num_captures = 1000
 
 
 class Gammas(tables.IsDescription):
@@ -33,15 +34,16 @@ N = 0
 t0 = time.time()
 row = table.row
 try:
-    while time.time() - t0 < 180:
-        t, trace = dev.run_block(pre_trigger_samples, post_trigger_samples,
-                                 timebase)
+    while time.time() - t0 < 900:
+        t, traces = dev.measure(pre_trigger_samples, post_trigger_samples,
+                                timebase, num_captures=num_captures)
         # peak_value = -trace.min()
         # if .234 <= peak_value < .254:
-        row['t'] = time.time()
-        row['trace'] = trace
-        row.append()
-        N += 1
+        for trace in traces:
+            # row['t'] = time.time()
+            row['trace'] = trace
+            row.append()
+            N += 1
 except KeyboardInterrupt:
     pass
 t1 = time.time()
