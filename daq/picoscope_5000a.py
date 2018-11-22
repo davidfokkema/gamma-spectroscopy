@@ -149,7 +149,7 @@ class PicoScope5000A:
         return time_values, data
 
     def measure_adc_values(self, num_pre_samples, num_post_samples, timebase,
-                           num_captures):
+                           num_captures=1):
         """Start a data collection run and return the data in ADC values.
 
         WIP: this method only collects data on channel A.
