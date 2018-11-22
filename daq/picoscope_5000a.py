@@ -257,6 +257,7 @@ class PicoScope5000A:
     def _run_block(self, num_pre_samples, num_post_samples, timebase,
                    num_captures, callback=None):
         """Run in block mode."""
+        self.data_is_ready.clear()
         assert_pico_ok(ps.ps5000aSetNoOfCaptures(self._handle, num_captures))
         assert_pico_ok(ps.ps5000aRunBlock(
             self._handle, num_pre_samples, num_post_samples, timebase, None, 0,
@@ -273,7 +274,6 @@ class PicoScope5000A:
         assert_pico_ok(ps.ps5000aGetValuesBulk(
             self._handle, ctypes.byref(num_samples), 0, num_captures - 1, 0, 0,
             ctypes.byref(overflow)))
-        self.data_is_ready.clear()
 
     def _stop(self):
         """Stop data capture."""
