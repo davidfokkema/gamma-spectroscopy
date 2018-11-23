@@ -5,9 +5,9 @@ from daq import picoscope_5000a
 
 dev = picoscope_5000a.PicoScope5000A(resolution_bits=12)
 dev.set_channel('A', 'DC', .5, offset=.4)
-dev.set_trigger('A', 0.04, 'FALLING')
+dev.set_trigger('A', 0.03, 'FALLING')
 
-NUM_CAPTURES = 1000
+NUM_CAPTURES = 100
 N = 0
 t0 = time.time()
 while time.time() - t0 < 5:

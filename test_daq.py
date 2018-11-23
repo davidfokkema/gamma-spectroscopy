@@ -6,9 +6,9 @@ from daq import picoscope_5000a
 
 
 resolution = 12
-timebase = 2
-pre_trigger_samples = 200
-post_trigger_samples = 150
+timebase = 10
+pre_trigger_samples = 50
+post_trigger_samples = 300
 num_captures = 1000
 
 
@@ -23,8 +23,8 @@ data = tables.open_file('data.h5', 'w')
 table = data.create_table('/', 'events', Gammas)
 
 dev = picoscope_5000a.PicoScope5000A(resolution_bits=resolution)
-dev.set_channel('A', 'DC', .5, offset=.4)
-dev.set_trigger('A', 0.04, 'FALLING')
+dev.set_channel('A', 'DC', 5, offset=-5)
+dev.set_trigger('A', .2, 'RISING')
 
 dt = dev.get_interval_from_timebase(timebase, pre_trigger_samples +
                                     post_trigger_samples)
