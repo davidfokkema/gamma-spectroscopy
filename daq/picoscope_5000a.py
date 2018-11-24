@@ -282,7 +282,7 @@ class PicoScope5000A:
                 num_samples, segment, 0))
 
     def start_run(self, num_pre_samples, num_post_samples, timebase,
-                  num_captures, callback=None):
+                  num_captures=1, callback=None):
         """Start a run in (rapid) block mode.
 
         WIP: this method only collects data on channel A.
