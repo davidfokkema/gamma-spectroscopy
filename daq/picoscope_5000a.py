@@ -68,11 +68,12 @@ class PicoScope5000A:
         self._input_offsets = {}
         self._input_adc_ranges = {}
         self.data_is_ready = Event()
-        self.callback = callback_factory(self.data_is_ready)
+        self._callback = callback_factory(self.data_is_ready)
         self.open(serial, resolution_bits)
 
     def __del__(self):
         """Instance destructor, close device."""
+        self.stop()
         self.close()
 
     def open(self, serial=None, resolution_bits=12):
@@ -166,15 +167,41 @@ class PicoScope5000A:
         :returns: data
         """
         num_samples = num_pre_samples + num_post_samples
-        self._set_memory_segments(num_captures, num_samples)
-        self._set_data_buffer('A', num_samples, num_captures)
-        self._run_block(num_pre_samples, num_post_samples, timebase,
-                        num_captures, self.callback)
-        self._wait_for_data()
+        self.set_up_buffers(num_samples, num_captures)
+        self.start_run(num_pre_samples, num_post_samples, timebase,
+                       num_captures)
+        self.wait_for_data()
         self._get_values(num_samples, num_captures)
 
-        self._stop()
+        self.stop()
         return self._buffers
+
+    def set_up_buffers(self, num_samples, num_captures=1):
+        """Set up memory buffers for reading data from device.
+
+        :param num_samples: the number of required samples per capture.
+        :param num_captures: the number of captures.
+        """
+        self._set_memory_segments(num_captures, num_samples)
+        self._set_data_buffer('A', num_samples, num_captures)
+
+    def get_adc_data(self):
+        """Return all captured data, in ADC values."""
+        self._get_values(self._num_samples, self._num_captures)
+        return self._buffers
+
+    def get_data(self):
+        """Return all captured data, in physical units.
+
+        This method returns a tuple of time values (in seconds) and the
+        captured data (in Volts).
+
+        """
+        data = self.get_adc_data()
+        time_values = self._calculate_time_values(self._timebase,
+                                                  self._num_samples)
+        data = self._rescale_adc_to_V(np.array(data))
+        return time_values, data
 
     def _calculate_time_values(self, timebase, num_samples):
         """Calculate time values from timebase and number of samples."""
@@ -251,19 +278,48 @@ class PicoScope5000A:
                          range(num_captures)]
         for segment in range(num_captures):
             assert_pico_ok(ps.ps5000aSetDataBuffer(
-                self._handle, channel, ctypes.byref(self._buffers[segment]), num_samples,
-                segment, 0))
+                self._handle, channel, ctypes.byref(self._buffers[segment]),
+                num_samples, segment, 0))
 
-    def _run_block(self, num_pre_samples, num_post_samples, timebase,
-                   num_captures, callback=None):
-        """Run in block mode."""
+    def start_run(self, num_pre_samples, num_post_samples, timebase,
+                  num_captures, callback=None):
+        """Start a run in (rapid) block mode.
+
+        WIP: this method only collects data on channel A.
+
+        Start a data collection run in 'rapid block mode' and collect a number
+        of captures. Unlike the :method:`measure` and
+        :method:`measure_adc_values`, which handle all details for you, this
+        method returns immediately, while the device captures the requested
+        data. Make sure that you *first* run :method:`set_up_buffers` to set up
+        the device's memory buffers. You can supply a C-style callback to be
+        notified when the device is ready, or call :method:`wait_for_data:.
+        When the data is ready, call :method:`get_data` or
+        :method:`get_adc_data`. When done measuring data, make sure to call
+        :method:`stop`.
+
+        :param num_pre_samples: number of samples before the trigger
+        :param num_post_samples: number of samples after the trigger
+        :param timebase: timebase setting (see programmers guide for reference)
+        :param num_captures: number of captures to take
+
+        :returns: data
+        """
+        # save samples and captures for reference
+        self._num_samples = num_pre_samples + num_post_samples
+        self._timebase = timebase
+        self._num_captures = num_captures
+
+        if callback is None:
+            callback = self._callback
         self.data_is_ready.clear()
+
         assert_pico_ok(ps.ps5000aSetNoOfCaptures(self._handle, num_captures))
         assert_pico_ok(ps.ps5000aRunBlock(
             self._handle, num_pre_samples, num_post_samples, timebase, None, 0,
             callback, None))
 
-    def _wait_for_data(self):
+    def wait_for_data(self):
         """Wait for device to finish data capture."""
         self.data_is_ready.wait()
 
@@ -275,7 +331,7 @@ class PicoScope5000A:
             self._handle, ctypes.byref(num_samples), 0, num_captures - 1, 0, 0,
             ctypes.byref(overflow)))
 
-    def _stop(self):
+    def stop(self):
         """Stop data capture."""
         assert_pico_ok(ps.ps5000aStop(self._handle))
 
