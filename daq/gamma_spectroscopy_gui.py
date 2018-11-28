@@ -24,6 +24,10 @@ class UserInterface(QtWidgets.QMainWindow):
 
     _is_running = False
 
+    _range = 0
+    _offset = 0.
+
+
     def __init__(self):
         super().__init__()
 
@@ -48,6 +52,8 @@ class UserInterface(QtWidgets.QMainWindow):
         self.range_box.addItems(INPUT_RANGES.values())
         self.range_box.currentIndexChanged.connect(self.set_range)
         self.range_box.setCurrentIndex(6)
+
+        self.offset_box.valueChanged.connect(self.set_offset)
 
         self.run_stop_button.clicked.connect(self.toggle_run_stop)
 
@@ -79,6 +85,12 @@ class UserInterface(QtWidgets.QMainWindow):
         self.scope.set_channel('A', 'DC', range)
         self._range = range
 
+    @QtCore.pyqtSlot(float)
+    def set_offset(self, offset):
+        self.scope.stop()
+        self.scope.set_channel('A', 'DC', self._range, offset)
+        self._offset = offset
+
     @QtCore.pyqtSlot()
     def fetch_data(self):
         t, data = self.scope.get_data()
@@ -94,7 +106,7 @@ class UserInterface(QtWidgets.QMainWindow):
             self.plot.plot(data['x'] * 1e6, data['y'], pen='k')
         self.plot.setLabels(title='Scintillator event', bottom='Time [us]',
                             left='Signal [mV]')
-        self.plot.setYRange(-self._range, self._range)
+        self.plot.setYRange(-self._range - self._offset, self._range - self._offset)
 
 
 if __name__ == '__main__':
