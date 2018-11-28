@@ -12,7 +12,6 @@ from picoscope_5000a import PicoScope5000A, INPUT_RANGES
 def create_callback(signal):
     @ctypes.CFUNCTYPE(None, ctypes.c_int16, ctypes.c_int, ctypes.c_void_p)
     def my_callback(handle, status, parameters):
-        print("CALLBACK")
         signal.emit()
     return my_callback
 
@@ -29,8 +28,7 @@ class UserInterface(QtWidgets.QMainWindow):
         super().__init__()
 
         self.scope = PicoScope5000A()
-        self.scope.set_channel('A', 'DC', .5)
-        self.scope.set_trigger('A', 5, 'RISING')
+        self.scope.set_channel('A', 'DC', 1)
 
         self.init_ui()
 
@@ -69,7 +67,6 @@ class UserInterface(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def start_run(self):
-        print("STARTRUN")
         self.scope.set_up_buffers(2000)
         self.scope.start_run(1000, 1000, 2000, callback=self.callback)
 
@@ -78,16 +75,13 @@ class UserInterface(QtWidgets.QMainWindow):
         self.scope.stop()
         ranges = list(INPUT_RANGES.keys())
         range = ranges[range_idx]
-        # self.scope.set_channel('A', 'DC', range)
+        self.scope.set_channel('A', 'DC', range)
         self._range = range
-        # if self._is_running:
-        #     self.start_run_signal.emit()
 
     @QtCore.pyqtSlot()
     def fetch_data(self):
-        print("GETDATA")
         t, data = self.scope.get_data()
-        if data:
+        if data is not None:
             self.plot_data_signal.emit({'x': t, 'y': data[0]})
         if self._is_running:
             self.start_run_signal.emit()

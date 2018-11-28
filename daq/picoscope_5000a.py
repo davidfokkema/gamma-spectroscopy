@@ -148,7 +148,7 @@ class PicoScope5000A:
 
         num_samples = num_pre_samples + num_post_samples
         time_values = self._calculate_time_values(timebase, num_samples)
-        if data:
+        if data is not None:
             data = self._rescale_adc_to_V(np.array(data))
 
         return time_values, data
@@ -203,7 +203,7 @@ class PicoScope5000A:
         data = self.get_adc_data()
         time_values = self._calculate_time_values(self._timebase,
                                                   self._num_samples)
-        if data:
+        if data is not None:
             data = self._rescale_adc_to_V(np.array(data))
         return time_values, data
 
