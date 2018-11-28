@@ -5,7 +5,7 @@ import sys
 from PyQt5 import uic, QtWidgets, QtCore
 import pyqtgraph as pg
 
-from picoscope_5000a import PicoScope5000A
+from picoscope_5000a import PicoScope5000A, INPUT_RANGES
 
 
 def create_callback(signal):
@@ -25,24 +25,30 @@ class UserInterface(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.scope = PicoScope5000A()
+        self.scope.set_channel('A', 'DC', .5)
+
+        self.init_ui()
+
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.start_run)
+        self.timer.start(100)
+
+    def init_ui(self):
         pg.setConfigOption('background', 'w')
         pg.setConfigOption('foreground', 'k')
 
         ui_path = 'gamma_spectroscopy_gui.ui'
         uic.loadUi(ui_path, self)
 
-        self.timer = QtCore.QTimer()
-        self.timer.timeout.connect(self.start_run)
-
         self.new_data_signal.connect(self.fetch_data)
         self.callback = create_callback(self.new_data_signal)
 
         self.plot_data_signal.connect(self.plot_data)
 
-        self.scope = PicoScope5000A()
-        self.scope.set_channel('A', 'DC', 0.5)
-
-        self.timer.start(100)
+        self.range_box.addItems(INPUT_RANGES.values())
+        self.range_box.currentIndexChanged.connect(self.set_range)
+        self.range_box.setCurrentIndex(6)
 
         self.show()
 
@@ -52,8 +58,16 @@ class UserInterface(QtWidgets.QMainWindow):
             return
         else:
             self._is_running = True
-            self.scope.set_up_buffers(200)
-            self.scope.start_run(100, 100, 20, callback=self.callback)
+            self.scope.set_up_buffers(20000)
+            self.scope.start_run(10000, 10000, 20, callback=self.callback)
+
+    @QtCore.pyqtSlot(int)
+    def set_range(self, range_idx):
+        print(f"RANGE CHANGED to {range_idx}")
+        ranges = list(INPUT_RANGES.keys())
+        range = ranges[range_idx]
+        self.scope.set_channel('A', 'DC', range)
+        self._range = range
 
     @QtCore.pyqtSlot()
     def fetch_data(self):
@@ -64,10 +78,10 @@ class UserInterface(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(dict)
     def plot_data(self, data):
         self.plot.clear()
-        self.plot.plot(data['x'] * 1e6, data['y'] * 1e3, pen='k')
+        self.plot.plot(data['x'] * 1e6, data['y'], pen='k')
         self.plot.setLabels(title='Scintillator event', bottom='Time [us]',
                             left='Signal [mV]')
-        # self.plot.setYRange(0, -500)
+        self.plot.setYRange(-self._range, self._range)
 
 
 if __name__ == '__main__':
