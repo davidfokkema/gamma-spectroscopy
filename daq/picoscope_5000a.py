@@ -15,6 +15,7 @@ import numpy as np
 
 from picosdk.ps5000a import ps5000a as ps
 from picosdk.functions import assert_pico_ok
+from picosdk.constants import PICO_STATUS_LOOKUP
 
 
 INPUT_RANGES = {
@@ -34,7 +35,11 @@ INPUT_RANGES = {
 
 class InvalidParameterError(Exception):
     """Error because of an invalid parameter."""
+    pass
 
+
+class PicoSDKError(Exception):
+    """Error returned from PicoSDK."""
     pass
 
 
@@ -56,7 +61,6 @@ class PicoScope5000A:
         Start a data collection run and return the data
     get_interval_from_timebase()
         Get sampling interval for given timebase
-
     """
 
     _handle = None
@@ -170,10 +174,10 @@ class PicoScope5000A:
         self.start_run(num_pre_samples, num_post_samples, timebase,
                        num_captures)
         self.wait_for_data()
-        self._get_values(num_samples, num_captures)
+        values = self._get_values(num_samples, num_captures)
 
         self.stop()
-        return self._buffers
+        return values
 
     def set_up_buffers(self, num_samples, num_captures=1):
         """Set up memory buffers for reading data from device.
@@ -186,8 +190,7 @@ class PicoScope5000A:
 
     def get_adc_data(self):
         """Return all captured data, in ADC values."""
-        self._get_values(self._num_samples, self._num_captures)
-        return self._buffers
+        return self._get_values(self._num_samples, self._num_captures)
 
     def get_data(self):
         """Return all captured data, in physical units.
@@ -323,12 +326,21 @@ class PicoScope5000A:
         self.data_is_ready.wait()
 
     def _get_values(self, num_samples, num_captures):
-        """Get data from device and store in buffer."""
+        """Get data from device and return buffer or None."""
         num_samples = ctypes.c_uint32(num_samples)
         overflow = (ctypes.c_int16 * num_captures)()
-        assert_pico_ok(ps.ps5000aGetValuesBulk(
+
+        status = ps.ps5000aGetValuesBulk(
             self._handle, ctypes.byref(num_samples), 0, num_captures - 1, 0, 0,
-            ctypes.byref(overflow)))
+            ctypes.byref(overflow))
+        status_msg = PICO_STATUS_LOOKUP[status]
+
+        if status_msg == "PICO_OK":
+            return self._buffers
+        elif status_msg == "PICO_NO_SAMPLES_AVAILABLE":
+            return None
+        else:
+            raise PicoSDKError(f"PicoSDK returned {status_msg}")
 
     def stop(self):
         """Stop data capture."""

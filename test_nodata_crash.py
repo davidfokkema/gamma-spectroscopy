@@ -9,7 +9,7 @@ from picosdk.constants import PICO_STATUS_LOOKUP
 def my_callback(handle, status, parameters):
     print("CALLBACK")
     print(f"{PICO_STATUS_LOOKUP[status]}")
-    dev.get_adc_data()
+    print(dev.get_adc_data())
 
 
 dev = PicoScope5000A()
