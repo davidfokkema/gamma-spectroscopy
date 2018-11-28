@@ -28,7 +28,6 @@ class UserInterface(QtWidgets.QMainWindow):
         super().__init__()
 
         self.scope = PicoScope5000A()
-        self.scope.set_channel('A', 'DC', 1)
 
         self.init_ui()
 
@@ -51,6 +50,8 @@ class UserInterface(QtWidgets.QMainWindow):
         self.range_box.setCurrentIndex(6)
 
         self.run_stop_button.clicked.connect(self.toggle_run_stop)
+
+        self.plot_data_signal.emit({})
 
         self.show()
 
@@ -89,7 +90,8 @@ class UserInterface(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(dict)
     def plot_data(self, data):
         self.plot.clear()
-        self.plot.plot(data['x'] * 1e6, data['y'], pen='k')
+        if data:
+            self.plot.plot(data['x'] * 1e6, data['y'], pen='k')
         self.plot.setLabels(title='Scintillator event', bottom='Time [us]',
                             left='Signal [mV]')
         self.plot.setYRange(-self._range, self._range)
