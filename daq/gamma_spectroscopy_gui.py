@@ -26,6 +26,7 @@ class UserInterface(QtWidgets.QMainWindow):
 
     _range = 0
     _offset = 0.
+    _threshold = 0.
 
 
     def __init__(self):
@@ -52,8 +53,8 @@ class UserInterface(QtWidgets.QMainWindow):
         self.range_box.addItems(INPUT_RANGES.values())
         self.range_box.currentIndexChanged.connect(self.set_range)
         self.range_box.setCurrentIndex(6)
-
         self.offset_box.valueChanged.connect(self.set_offset)
+        self.threshold_box.valueChanged.connect(self.set_threshold)
 
         self.run_stop_button.clicked.connect(self.toggle_run_stop)
 
@@ -83,13 +84,22 @@ class UserInterface(QtWidgets.QMainWindow):
         ranges = list(INPUT_RANGES.keys())
         range = ranges[range_idx]
         self.scope.set_channel('A', 'DC', range)
+        self.scope.set_trigger('A', self._threshold, 'FALLING')
         self._range = range
 
     @QtCore.pyqtSlot(float)
     def set_offset(self, offset):
         self.scope.stop()
         self.scope.set_channel('A', 'DC', self._range, offset)
+        self.scope.set_trigger('A', self._threshold, 'FALLING')
         self._offset = offset
+
+    @QtCore.pyqtSlot(float)
+    def set_threshold(self, threshold):
+        threshold = self._threshold
+        self.scope.stop()
+        self.scope.set_trigger('A', threshold, 'FALLING')
+        self._threshold = threshold
 
     @QtCore.pyqtSlot()
     def fetch_data(self):
