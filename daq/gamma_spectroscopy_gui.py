@@ -1,7 +1,6 @@
 import ctypes
-import os.path
+from math import floor
 import sys
-import time
 
 from PyQt5 import uic, QtWidgets, QtCore
 import pyqtgraph as pg
@@ -28,6 +27,12 @@ class UserInterface(QtWidgets.QMainWindow):
     _range = 0
     _offset = 0.
     _threshold = 0.
+    _timebase = 0
+    _pre_trigger_window = 0.
+    _post_trigger_window = 0.
+    _pre_samples = 0
+    _post_samples = 0
+    _num_samples = 0
 
 
     def __init__(self):
@@ -61,6 +66,9 @@ class UserInterface(QtWidgets.QMainWindow):
         self.offset_box.valueChanged.connect(self.set_offset)
         self.threshold_box.valueChanged.connect(self.set_threshold)
         self.trigger_box.stateChanged.connect(self.set_trigger_state)
+        self.timebase_box.valueChanged.connect(self.set_timebase)
+        self.pre_trigger_box.valueChanged.connect(self.set_pre_trigger_window)
+        self.post_trigger_box.valueChanged.connect(self.set_post_trigger_window)
 
         self.run_stop_button.clicked.connect(self.toggle_run_stop)
 
@@ -68,6 +76,9 @@ class UserInterface(QtWidgets.QMainWindow):
 
         self._trigger_value_changed_signal(self.offset_box)
         self._trigger_value_changed_signal(self.threshold_box)
+        self._trigger_value_changed_signal(self.timebase_box)
+        self._trigger_value_changed_signal(self.pre_trigger_box)
+        self._trigger_value_changed_signal(self.post_trigger_box)
 
         self.show()
 
@@ -87,8 +98,9 @@ class UserInterface(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def start_run(self):
-        self.scope.set_up_buffers(2000)
-        self.scope.start_run(1000, 1000, 2000, callback=self.callback)
+        self.scope.set_up_buffers(self._num_samples)
+        self.scope.start_run(self._pre_samples, self._post_samples,
+                             self._timebase, callback=self.callback)
 
     @QtCore.pyqtSlot(int)
     def set_range(self, range_idx):
@@ -121,6 +133,38 @@ class UserInterface(QtWidgets.QMainWindow):
     def _set_trigger(self):
         self.scope.stop()
         self.scope.set_trigger('A', self._threshold, 'FALLING', is_enabled=self._is_trigger_enabled)
+
+    @QtCore.pyqtSlot(int)
+    def set_timebase(self, timebase):
+        self._timebase = timebase
+        dt = self.scope.get_interval_from_timebase(timebase)
+        self.sampling_time_label.setText(f"{dt / 1e3:.3f} μs")
+        self._update_num_samples()
+
+    @QtCore.pyqtSlot(float)
+    def set_pre_trigger_window(self, pre_trigger_window):
+        self._pre_trigger_window = pre_trigger_window * 1e3
+        self._update_num_samples()
+
+    @QtCore.pyqtSlot(float)
+    def set_post_trigger_window(self, post_trigger_window):
+        self._post_trigger_window = post_trigger_window * 1e3
+        self._update_num_samples()
+
+    def _update_num_samples(self):
+        pre_samples, post_samples = self._calculate_num_samples()
+        num_samples = pre_samples + post_samples
+        self.num_samples_label.setText(str(num_samples))
+
+        self._pre_samples = pre_samples
+        self._post_samples = post_samples
+        self._num_samples = num_samples
+
+    def _calculate_num_samples(self):
+        dt = self.scope.get_interval_from_timebase(self._timebase)
+        pre_samples = floor(self._pre_trigger_window / dt)
+        post_samples = floor(self._post_trigger_window / dt) + 1
+        return pre_samples, post_samples
 
     @QtCore.pyqtSlot()
     def fetch_data(self):
