@@ -2,6 +2,8 @@ import ctypes
 from math import floor
 import sys
 
+import numpy as np
+
 from PyQt5 import uic, QtWidgets, QtCore
 import pyqtgraph as pg
 
@@ -33,6 +35,8 @@ class UserInterface(QtWidgets.QMainWindow):
     _pre_samples = 0
     _post_samples = 0
     _num_samples = 0
+
+    _pulseheights = []
 
 
     def __init__(self):
@@ -176,12 +180,29 @@ class UserInterface(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(dict)
     def plot_data(self, data):
+        self.update_event_plot(data)
+        self.update_spectrum_plot(data)
+
+    def update_event_plot(self, data):
         self.event_plot.clear()
         if data:
             self.event_plot.plot(data['x'] * 1e6, data['y'], pen='k')
         self.event_plot.setLabels(title='Scintillator event', bottom='Time [us]',
                             left='Signal [mV]')
         self.event_plot.setYRange(-self._range - self._offset, self._range - self._offset)
+
+    def update_spectrum_plot(self, data):
+        self.spectrum_plot.setLabels(title='Spectrum',
+                                     bottom='Pulseheight [mV]', left='Counts')
+        self.spectrum_plot.setXRange(0, 2 * self._range * 1e3)
+
+        if data:
+            pulseheight = (-data['y']).max() * 1e3
+            self._pulseheights.append(pulseheight)
+            n, bins = np.histogram(self._pulseheights, bins=100)
+            x = (bins[:-1] + bins[1:]) / 2
+            self.spectrum_plot.clear()
+            self.spectrum_plot.plot(x, n)
 
 
 if __name__ == '__main__':
