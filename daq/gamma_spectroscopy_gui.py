@@ -37,6 +37,10 @@ class UserInterface(QtWidgets.QMainWindow):
 
         self.init_ui()
 
+    def closeEvent(self, event):
+        self._is_running = False
+        self.scope.stop()
+
     def init_ui(self):
         pg.setConfigOption('background', 'w')
         pg.setConfigOption('foreground', 'k')
