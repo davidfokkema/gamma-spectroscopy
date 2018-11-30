@@ -105,7 +105,6 @@ class UserInterface(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(int)
     def set_trigger_state(self, state):
         self.scope.stop()
-        print(f"TRIGGER {self._threshold}")
         self.scope.set_trigger('A', self._threshold, 'FALLING', is_enabled=state)
         self._is_trigger_enabled = state
 
