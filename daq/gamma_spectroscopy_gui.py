@@ -86,31 +86,35 @@ class UserInterface(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def set_range(self, range_idx):
-        self.scope.stop()
         ranges = list(INPUT_RANGES.keys())
-        range = ranges[range_idx]
-        self.scope.set_channel('A', 'DC', range)
-        self.scope.set_trigger('A', self._threshold, 'FALLING', is_enabled=self._is_trigger_enabled)
-        self._range = range
+        self._range = ranges[range_idx]
+        self._set_channel()
+        self._set_trigger()
 
     @QtCore.pyqtSlot(float)
     def set_offset(self, offset):
-        self.scope.stop()
-        self.scope.set_channel('A', 'DC', self._range, offset)
-        self.scope.set_trigger('A', self._threshold, 'FALLING', is_enabled=self._is_trigger_enabled)
         self._offset = offset
+        self._set_channel()
+        self._set_trigger()
 
     @QtCore.pyqtSlot(float)
     def set_threshold(self, threshold):
-        self.scope.stop()
-        self.scope.set_trigger('A', threshold, 'FALLING', is_enabled=self._is_trigger_enabled)
         self._threshold = threshold
+        self._set_trigger()
 
     @QtCore.pyqtSlot(int)
     def set_trigger_state(self, state):
         self.scope.stop()
         self.scope.set_trigger('A', self._threshold, 'FALLING', is_enabled=state)
         self._is_trigger_enabled = state
+
+    def _set_channel(self):
+        self.scope.stop()
+        self.scope.set_channel('A', 'DC', self._range, self._offset)
+
+    def _set_trigger(self):
+        self.scope.stop()
+        self.scope.set_trigger('A', self._threshold, 'FALLING', is_enabled=self._is_trigger_enabled)
 
     @QtCore.pyqtSlot()
     def fetch_data(self):
