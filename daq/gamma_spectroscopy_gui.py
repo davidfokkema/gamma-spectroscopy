@@ -66,7 +66,13 @@ class UserInterface(QtWidgets.QMainWindow):
 
         self.plot_data_signal.emit({})
 
+        self._trigger_value_changed_signal(self.offset_box)
+        self._trigger_value_changed_signal(self.threshold_box)
+
         self.show()
+
+    def _trigger_value_changed_signal(self, widget):
+        widget.valueChanged.emit(widget.value())
 
     @QtCore.pyqtSlot()
     def toggle_run_stop(self):
