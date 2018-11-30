@@ -61,6 +61,26 @@ class PicoScope5000A:
         Start a data collection run and return the data
     get_interval_from_timebase()
         Get sampling interval for given timebase
+    measure()
+        Start a data collection run and return the data
+    measure_adc_values()
+        Start a data collection run and return the data in ADC values
+    set_up_buffers()
+        Set up memory buffers for reading data from device
+    get_adc_data()
+        Return all captured data, in ADC values
+    get_data()
+        Return all captured data, in physical units
+    get_interval_from_timebase()
+        Get sampling interval for given timebase
+    start_run()
+        Start a run in (rapid) block mode
+    wait_for_data()
+        Wait for device to finish data capture
+    stop()
+        Stop data capture
+    set_trigger()
+        Set the oscilloscope trigger condition
     """
 
     _handle = None
