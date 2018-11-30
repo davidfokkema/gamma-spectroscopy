@@ -176,12 +176,12 @@ class UserInterface(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(dict)
     def plot_data(self, data):
-        self.plot.clear()
+        self.event_plot.clear()
         if data:
-            self.plot.plot(data['x'] * 1e6, data['y'], pen='k')
-        self.plot.setLabels(title='Scintillator event', bottom='Time [us]',
+            self.event_plot.plot(data['x'] * 1e6, data['y'], pen='k')
+        self.event_plot.setLabels(title='Scintillator event', bottom='Time [us]',
                             left='Signal [mV]')
-        self.plot.setYRange(-self._range - self._offset, self._range - self._offset)
+        self.event_plot.setYRange(-self._range - self._offset, self._range - self._offset)
 
 
 if __name__ == '__main__':

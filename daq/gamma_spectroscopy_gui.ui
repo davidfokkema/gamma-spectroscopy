@@ -30,7 +30,55 @@
     <item>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="PlotWidget" name="plot"/>
+       <widget class="QTabWidget" name="plot_tabs">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="event_tab">
+         <attribute name="title">
+          <string>Event plot</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_2">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="PlotWidget" name="event_plot"/>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="spectrum_tab">
+         <attribute name="title">
+          <string>Spectrum plot</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
+          <item>
+           <widget class="PlotWidget" name="spectrum_plot"/>
+          </item>
+         </layout>
+        </widget>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="run_stop_button">
