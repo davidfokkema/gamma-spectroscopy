@@ -32,7 +32,7 @@
       <item>
        <widget class="QTabWidget" name="plot_tabs">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="event_tab">
          <attribute name="title">
@@ -75,6 +75,13 @@
           </property>
           <item>
            <widget class="PlotWidget" name="spectrum_plot"/>
+          </item>
+          <item>
+           <widget class="QPushButton" name="clear_spectrum_button">
+            <property name="text">
+             <string>Clear spectrum</string>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

@@ -36,11 +36,11 @@ class UserInterface(QtWidgets.QMainWindow):
     _post_samples = 0
     _num_samples = 0
 
-    _pulseheights = []
-
 
     def __init__(self):
         super().__init__()
+
+        self._pulseheights = []
 
         self.scope = PicoScope5000A()
 
@@ -74,6 +74,7 @@ class UserInterface(QtWidgets.QMainWindow):
         self.pre_trigger_box.valueChanged.connect(self.set_pre_trigger_window)
         self.post_trigger_box.valueChanged.connect(self.set_post_trigger_window)
 
+        self.clear_spectrum_button.clicked.connect(self.clear_spectrum)
         self.run_stop_button.clicked.connect(self.toggle_run_stop)
 
         self.plot_data_signal.emit({})
@@ -177,6 +178,10 @@ class UserInterface(QtWidgets.QMainWindow):
             self.plot_data_signal.emit({'x': t, 'y': data[0]})
         if self._is_running:
             self.start_run_signal.emit()
+
+    @QtCore.pyqtSlot()
+    def clear_spectrum(self):
+        self._pulseheights = []
 
     @QtCore.pyqtSlot(dict)
     def plot_data(self, data):
