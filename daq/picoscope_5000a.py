@@ -6,7 +6,7 @@ PicoScope5000A
     Interface to a 5000 Series PicoScope.
 """
 # WIP: disable all channels on startup
-# WIP: determine of channels C and D are available
+# WIP: determine if channels C and D are available
 
 import ctypes
 from threading import Event
@@ -57,8 +57,6 @@ class PicoScope5000A:
         close the device
     set_channel()
         Set up input channels
-    run_block()
-        Start a data collection run and return the data
     get_interval_from_timebase()
         Get sampling interval for given timebase
     measure()
