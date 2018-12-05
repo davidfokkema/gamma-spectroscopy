@@ -1,6 +1,7 @@
 import ctypes
 from math import floor
 import sys
+import time
 
 import numpy as np
 
@@ -35,6 +36,8 @@ class UserInterface(QtWidgets.QMainWindow):
     _pre_samples = 0
     _post_samples = 0
     _num_samples = 0
+
+    _t_last_plot_update = 0
 
 
     def __init__(self):
@@ -185,8 +188,12 @@ class UserInterface(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(dict)
     def plot_data(self, data):
-        self.update_event_plot(data)
-        self.update_spectrum_plot(data)
+        t = time.time()
+        interval = 1 / self.plot_limit_box.value()
+        if t - self._t_last_plot_update > interval:
+            self._t_last_plot_update = t
+            self.update_event_plot(data)
+            self.update_spectrum_plot(data)
 
     def update_event_plot(self, data):
         self.event_plot.clear()
