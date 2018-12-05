@@ -80,7 +80,8 @@ class UserInterface(QtWidgets.QMainWindow):
         self.clear_spectrum_button.clicked.connect(self.clear_spectrum)
         self.run_stop_button.clicked.connect(self.toggle_run_stop)
 
-        self.plot_data_signal.emit({})
+        self.init_event_plot()
+        self.init_spectrum_plot()
 
         self._trigger_value_changed_signal(self.offset_box)
         self._trigger_value_changed_signal(self.threshold_box)
@@ -185,36 +186,43 @@ class UserInterface(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def clear_spectrum(self):
         self._pulseheights = []
+        self.init_spectrum_plot()
 
     @QtCore.pyqtSlot(dict)
     def plot_data(self, data):
+        pulseheight = (-data['y']).max() * 1e3
+        self._pulseheights.append(pulseheight)
+
         t = time.time()
         interval = 1 / self.plot_limit_box.value()
         if t - self._t_last_plot_update > interval:
             self._t_last_plot_update = t
             self.update_event_plot(data)
-            self.update_spectrum_plot(data)
+            self.update_spectrum_plot()
+
+    def init_event_plot(self):
+        self.event_plot.clear()
+        self.event_plot.setLabels(title='Scintillator event',
+                                  bottom='Time [us]', left='Signal [mV]')
+        self.event_plot.setYRange(-self._range - self._offset,
+                                  self._range - self._offset)
 
     def update_event_plot(self, data):
         self.event_plot.clear()
-        if data:
-            self.event_plot.plot(data['x'] * 1e6, data['y'], pen='k')
-        self.event_plot.setLabels(title='Scintillator event', bottom='Time [us]',
-                            left='Signal [mV]')
+        self.event_plot.plot(data['x'] * 1e6, data['y'], pen='k')
         self.event_plot.setYRange(-self._range - self._offset, self._range - self._offset)
 
-    def update_spectrum_plot(self, data):
+    def init_spectrum_plot(self):
+        self.spectrum_plot.clear()
         self.spectrum_plot.setLabels(title='Spectrum',
                                      bottom='Pulseheight [mV]', left='Counts')
-        self.spectrum_plot.setXRange(0, 2 * self._range * 1e3)
 
-        if data:
-            pulseheight = (-data['y']).max() * 1e3
-            self._pulseheights.append(pulseheight)
-            n, bins = np.histogram(self._pulseheights, bins=100)
-            x = (bins[:-1] + bins[1:]) / 2
-            self.spectrum_plot.clear()
-            self.spectrum_plot.plot(x, n)
+    def update_spectrum_plot(self):
+        n, bins = np.histogram(self._pulseheights, bins=100)
+        x = (bins[:-1] + bins[1:]) / 2
+        self.spectrum_plot.clear()
+        self.spectrum_plot.plot(x, n)
+        self.spectrum_plot.setXRange(0, 2 * self._range * 1e3)
 
 
 if __name__ == '__main__':
