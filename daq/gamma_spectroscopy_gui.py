@@ -24,6 +24,8 @@ class UserInterface(QtWidgets.QMainWindow):
     new_data_signal = QtCore.pyqtSignal()
     plot_data_signal = QtCore.pyqtSignal(dict)
 
+    run_timer = QtCore.QTimer(interval=1000)
+
     _is_running = False
     _is_trigger_enabled = False
 
@@ -38,6 +40,7 @@ class UserInterface(QtWidgets.QMainWindow):
     _num_samples = 0
 
     _t_last_plot_update = 0
+    _t_start_run = 0
 
 
     def __init__(self):
@@ -60,7 +63,7 @@ class UserInterface(QtWidgets.QMainWindow):
         ui_path = 'gamma_spectroscopy_gui.ui'
         uic.loadUi(ui_path, self)
 
-        self.start_run_signal.connect(self.start_run)
+        self.start_run_signal.connect(self.start_scope_run)
 
         self.new_data_signal.connect(self.fetch_data)
         self.callback = create_callback(self.new_data_signal)
@@ -80,6 +83,8 @@ class UserInterface(QtWidgets.QMainWindow):
         self.clear_spectrum_button.clicked.connect(self.clear_spectrum)
         self.run_stop_button.clicked.connect(self.toggle_run_stop)
 
+        self.run_timer.timeout.connect(self._update_run_time_label)
+
         self.init_event_plot()
         self.init_spectrum_plot()
 
@@ -97,16 +102,27 @@ class UserInterface(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def toggle_run_stop(self):
         if not self._is_running:
+            self.start_run()
+        else:
+            self.stop_run()
+
+    def start_run(self):
             self._is_running = True
+            self._t_start_run = time.time()
+            self._update_run_time_label()
+            self.run_timer.start()
             self.start_run_signal.emit()
             self.run_stop_button.setText("Stop")
-        else:
+
+    def stop_run(self):
             self._is_running = False
+            self._update_run_time_label()
             self.scope.stop()
+            self.run_timer.stop()
             self.run_stop_button.setText("Run")
 
     @QtCore.pyqtSlot()
-    def start_run(self):
+    def start_scope_run(self):
         self.scope.set_up_buffers(self._num_samples)
         self.scope.start_run(self._pre_samples, self._post_samples,
                              self._timebase, callback=self.callback)
@@ -174,6 +190,10 @@ class UserInterface(QtWidgets.QMainWindow):
         pre_samples = floor(self._pre_trigger_window / dt)
         post_samples = floor(self._post_trigger_window / dt) + 1
         return pre_samples, post_samples
+
+    def _update_run_time_label(self):
+        run_time = round(time.time() - self._t_start_run)
+        self.run_time_label.setText(f"{run_time} s")
 
     @QtCore.pyqtSlot()
     def fetch_data(self):
