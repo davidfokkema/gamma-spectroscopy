@@ -197,14 +197,22 @@ class UserInterface(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def fetch_data(self):
+        self.check_run_time()
         t, data = self.scope.get_data()
         if data is not None:
             self.plot_data_signal.emit({'x': t, 'y': data[0]})
         if self._is_running:
             self.start_run_signal.emit()
 
+    def check_run_time(self):
+        run_time = time.time() - self._t_start_run
+        if run_time >= self.run_duration_box.value():
+            self.stop_run()
+
     @QtCore.pyqtSlot()
     def clear_spectrum(self):
+        self._t_start_run = time.time()
+        self._update_run_time_label()
         self._pulseheights = []
         self.init_spectrum_plot()
 
