@@ -108,6 +108,7 @@ class UserInterface(QtWidgets.QMainWindow):
 
     def start_run(self):
             self._is_running = True
+            self.clear_spectrum()
             self._t_start_run = time.time()
             self._update_run_time_label()
             self.run_timer.start()
