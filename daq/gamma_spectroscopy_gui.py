@@ -30,6 +30,7 @@ class UserInterface(QtWidgets.QMainWindow):
     _is_trigger_enabled = False
 
     _range = 0
+    _offset_level = 0.
     _offset = 0.
     _threshold = 0.
     _timebase = 0
@@ -136,8 +137,8 @@ class UserInterface(QtWidgets.QMainWindow):
         self._set_trigger()
 
     @QtCore.pyqtSlot(float)
-    def set_offset(self, offset):
-        self._offset = offset
+    def set_offset(self, offset_level):
+        self._offset_level = offset_level
         self._set_channel()
         self._set_trigger()
 
@@ -154,6 +155,8 @@ class UserInterface(QtWidgets.QMainWindow):
 
     def _set_channel(self):
         self.scope.stop()
+        self._offset = np.interp(self._offset_level, [0, 100],
+                                 [-self._range, self._range])
         self.scope.set_channel('A', 'DC', self._range, self._offset)
 
     def _set_trigger(self):
