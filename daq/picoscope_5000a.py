@@ -43,6 +43,13 @@ class PicoSDKError(Exception):
     pass
 
 
+class DeviceNotFoundError(PicoSDKError):
+    """Device cannot be found."""
+
+    def __init__(self):
+        super().__init__("Device not connected.")
+
+
 class PicoScope5000A:
     """Interface to a 5000 Series PicoScope.
 
@@ -79,8 +86,8 @@ class PicoScope5000A:
         Stop data capture
     set_trigger()
         Set the oscilloscope trigger condition
-    """
 
+    """
     _handle = None
 
     def __init__(self, serial=None, resolution_bits=12):
@@ -94,8 +101,9 @@ class PicoScope5000A:
 
     def __del__(self):
         """Instance destructor, close device."""
-        self.stop()
-        self.close()
+        if self._handle:
+            self.stop()
+            self.close()
 
     def open(self, serial=None, resolution_bits=12):
         """Open the device.
@@ -105,10 +113,16 @@ class PicoScope5000A:
         """
         handle = ctypes.c_int16()
         resolution = _get_resolution_from_bits(resolution_bits)
-        assert_pico_ok(ps.ps5000aOpenUnit(ctypes.byref(handle), serial,
-                                          resolution))
+        status = ps.ps5000aOpenUnit(ctypes.byref(handle), serial, resolution)
+        status_msg = PICO_STATUS_LOOKUP[status]
 
-        self._handle = handle
+        if status_msg == "PICO_OK":
+            self._handle = handle
+            return
+        elif status_msg == 'PICO_NOT_FOUND':
+            raise DeviceNotFoundError()
+        else:
+            raise PicoSDKError(f"PicoSDK returned {status_msg}")
 
     def close(self):
         """Close the device."""
