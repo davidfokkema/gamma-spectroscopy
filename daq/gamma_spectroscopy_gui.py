@@ -254,7 +254,7 @@ class UserInterface(QtWidgets.QMainWindow):
         n, bins = np.histogram(self._pulseheights, bins=100)
         x = (bins[:-1] + bins[1:]) / 2
         self.spectrum_plot.clear()
-        self.spectrum_plot.plot(x, n)
+        self.spectrum_plot.plot(x, n, pen='k')
         self.spectrum_plot.setXRange(0, 2 * self._range * 1e3)
 
 
