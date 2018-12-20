@@ -125,9 +125,11 @@ class UserInterface(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def start_scope_run(self):
-        self.scope.set_up_buffers(self._num_samples)
+        num_captures = self.num_captures_box.value()
+        self.scope.set_up_buffers(self._num_samples, num_captures)
         self.scope.start_run(self._pre_samples, self._post_samples,
-                             self._timebase, callback=self.callback)
+                             self._timebase, num_captures,
+                             callback=self.callback)
 
     @QtCore.pyqtSlot(int)
     def set_range(self, range_idx):
@@ -206,7 +208,7 @@ class UserInterface(QtWidgets.QMainWindow):
         self.check_run_time()
         t, data = self.scope.get_data()
         if data is not None:
-            self.plot_data_signal.emit({'x': t, 'y': data[0]})
+            self.plot_data_signal.emit({'x': t, 'y': data})
         if self._is_running:
             self.start_run_signal.emit()
 
@@ -224,8 +226,8 @@ class UserInterface(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(dict)
     def plot_data(self, data):
-        pulseheight = (-data['y']).max() * 1e3
-        self._pulseheights.append(pulseheight)
+        pulseheight = (-data['y']).max(axis=1) * 1e3
+        self._pulseheights.extend(pulseheight)
 
         t = time.time()
         interval = 1 / self.plot_limit_box.value()
@@ -243,7 +245,7 @@ class UserInterface(QtWidgets.QMainWindow):
 
     def update_event_plot(self, data):
         self.event_plot.clear()
-        self.event_plot.plot(data['x'] * 1e6, data['y'], pen='k')
+        self.event_plot.plot(data['x'] * 1e6, data['y'][-1], pen='k')
 
     def init_spectrum_plot(self):
         self.spectrum_plot.clear()
