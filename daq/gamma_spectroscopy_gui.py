@@ -149,9 +149,8 @@ class UserInterface(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def set_trigger_state(self, state):
-        self.scope.stop()
-        self.scope.set_trigger('A', self._threshold, 'FALLING', is_enabled=state)
         self._is_trigger_enabled = state
+        self._set_trigger()
 
     def _set_channel(self):
         self.scope.stop()
@@ -163,7 +162,8 @@ class UserInterface(QtWidgets.QMainWindow):
 
     def _set_trigger(self):
         self.scope.stop()
-        self.scope.set_trigger('A', self._threshold, 'FALLING', is_enabled=self._is_trigger_enabled)
+        self.scope.set_trigger('A', self._threshold, 'FALLING',
+                               is_enabled=self._is_trigger_enabled)
 
     @QtCore.pyqtSlot(int)
     def set_timebase(self, timebase):
