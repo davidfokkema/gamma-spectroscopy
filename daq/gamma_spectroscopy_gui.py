@@ -158,6 +158,8 @@ class UserInterface(QtWidgets.QMainWindow):
         self._offset = np.interp(self._offset_level, [0, 100],
                                  [-self._range, self._range])
         self.scope.set_channel('A', 'DC', self._range, self._offset)
+        self.event_plot.setYRange(-self._range - self._offset,
+                                  self._range - self._offset)
 
     def _set_trigger(self):
         self.scope.stop()
@@ -242,7 +244,6 @@ class UserInterface(QtWidgets.QMainWindow):
     def update_event_plot(self, data):
         self.event_plot.clear()
         self.event_plot.plot(data['x'] * 1e6, data['y'], pen='k')
-        self.event_plot.setYRange(-self._range - self._offset, self._range - self._offset)
 
     def init_spectrum_plot(self):
         self.spectrum_plot.clear()
