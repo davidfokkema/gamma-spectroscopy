@@ -156,7 +156,7 @@ class UserInterface(QtWidgets.QMainWindow):
 
     def _set_channel(self):
         self.scope.stop()
-        self._offset = np.interp(self._offset_level, [0, 100],
+        self._offset = np.interp(self._offset_level, [-100, 100],
                                  [-self._range, self._range])
         self.scope.set_channel('A', 'DC', self._range, self._offset)
         self.event_plot.setYRange(-self._range - self._offset,
