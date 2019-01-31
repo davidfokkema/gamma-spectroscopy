@@ -31,6 +31,7 @@ class UserInterface(QtWidgets.QMainWindow):
     _is_running = False
     _is_trigger_enabled = False
     _pulse_polarity = None
+    _is_baseline_correction_enabled = True
 
     _range = 0
     _offset_level = 0.
@@ -86,6 +87,7 @@ class UserInterface(QtWidgets.QMainWindow):
         self.timebase_box.valueChanged.connect(self.set_timebase)
         self.pre_trigger_box.valueChanged.connect(self.set_pre_trigger_window)
         self.post_trigger_box.valueChanged.connect(self.set_post_trigger_window)
+        self.baseline_correction_box.stateChanged.connect(self.set_baseline_correction_state)
 
         self.clear_spectrum_button.clicked.connect(self.clear_spectrum)
         self.run_stop_button.clicked.connect(self.toggle_run_stop)
@@ -165,6 +167,10 @@ class UserInterface(QtWidgets.QMainWindow):
         self._pulse_polarity = self.POLARITY[idx]
         self._set_trigger()
 
+    @QtCore.pyqtSlot(int)
+    def set_baseline_correction_state(self, state):
+        self._is_baseline_correction_enabled = state
+
     def _set_channel(self):
         self.scope.stop()
         self._offset = np.interp(self._offset_level, [-100, 100],
@@ -240,7 +246,12 @@ class UserInterface(QtWidgets.QMainWindow):
     def plot_data(self, data):
         if self._pulse_polarity == 'Negative':
             data['y'] *= -1
-        pulseheight = (data['y']).max(axis=1) * 1e3
+        if self._is_baseline_correction_enabled:
+            num_samples = int(self._pre_samples * .8)
+            correction = data['y'][:num_samples].mean(axis=1)
+        else:
+            correction = 0
+        pulseheight = ((data['y']).max(axis=1) - correction) * 1e3
         self._pulseheights.extend(pulseheight)
 
         t = time.time()

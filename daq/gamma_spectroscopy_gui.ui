@@ -349,6 +349,23 @@
           </property>
          </widget>
         </item>
+        <item row="11" column="1">
+         <widget class="QCheckBox" name="baseline_correction_box">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="11" column="0">
+         <widget class="QLabel" name="label_15">
+          <property name="text">
+           <string>Baseline correction:</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
       <item>
