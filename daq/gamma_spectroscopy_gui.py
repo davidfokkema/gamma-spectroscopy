@@ -20,6 +20,8 @@ def create_callback(signal):
 
 class UserInterface(QtWidgets.QMainWindow):
 
+    POLARITY = ['Positive', 'Negative']
+
     start_run_signal = QtCore.pyqtSignal()
     new_data_signal = QtCore.pyqtSignal()
     plot_data_signal = QtCore.pyqtSignal(dict)
@@ -28,6 +30,7 @@ class UserInterface(QtWidgets.QMainWindow):
 
     _is_running = False
     _is_trigger_enabled = False
+    _pulse_polarity = None
 
     _range = 0
     _offset_level = 0.
@@ -74,6 +77,9 @@ class UserInterface(QtWidgets.QMainWindow):
         self.range_box.addItems(INPUT_RANGES.values())
         self.range_box.currentIndexChanged.connect(self.set_range)
         self.range_box.setCurrentIndex(6)
+        self.polarity_box.addItems(self.POLARITY)
+        self.polarity_box.currentIndexChanged.connect(self.set_polarity)
+        self._pulse_polarity = self.POLARITY[0]
         self.offset_box.valueChanged.connect(self.set_offset)
         self.threshold_box.valueChanged.connect(self.set_threshold)
         self.trigger_box.stateChanged.connect(self.set_trigger_state)
@@ -154,6 +160,11 @@ class UserInterface(QtWidgets.QMainWindow):
         self._is_trigger_enabled = state
         self._set_trigger()
 
+    @QtCore.pyqtSlot(int)
+    def set_polarity(self, idx):
+        self._pulse_polarity = self.POLARITY[idx]
+        self._set_trigger()
+
     def _set_channel(self):
         self.scope.stop()
         self._offset = np.interp(self._offset_level, [-100, 100],
@@ -163,8 +174,9 @@ class UserInterface(QtWidgets.QMainWindow):
                                   self._range - self._offset)
 
     def _set_trigger(self):
+        edge = 'RISING' if self._pulse_polarity == 'Positive' else 'FALLING'
         self.scope.stop()
-        self.scope.set_trigger('A', self._threshold, 'FALLING',
+        self.scope.set_trigger('A', self._threshold, edge,
                                is_enabled=self._is_trigger_enabled)
 
     @QtCore.pyqtSlot(int)
@@ -226,7 +238,9 @@ class UserInterface(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(dict)
     def plot_data(self, data):
-        pulseheight = (-data['y']).max(axis=1) * 1e3
+        if self._pulse_polarity == 'Negative':
+            data['y'] *= -1
+        pulseheight = (data['y']).max(axis=1) * 1e3
         self._pulseheights.extend(pulseheight)
 
         t = time.time()
@@ -239,7 +253,7 @@ class UserInterface(QtWidgets.QMainWindow):
     def init_event_plot(self):
         self.event_plot.clear()
         self.event_plot.setLabels(title='Scintillator event',
-                                  bottom='Time [us]', left='Signal [mV]')
+                                  bottom='Time [us]', left='Signal [V]')
         self.event_plot.setYRange(-self._range - self._offset,
                                   self._range - self._offset)
 
