@@ -21,6 +21,7 @@ def create_callback(signal):
 class UserInterface(QtWidgets.QMainWindow):
 
     POLARITY = ['Positive', 'Negative']
+    POLARITY_SIGN = [1, -1]
 
     start_run_signal = QtCore.pyqtSignal()
     new_data_signal = QtCore.pyqtSignal()
@@ -30,7 +31,8 @@ class UserInterface(QtWidgets.QMainWindow):
 
     _is_running = False
     _is_trigger_enabled = False
-    _pulse_polarity = None
+    _pulse_polarity = 'Positive'
+    _polarity_sign = 1
     _is_baseline_correction_enabled = True
 
     _range = 0
@@ -165,6 +167,7 @@ class UserInterface(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(int)
     def set_polarity(self, idx):
         self._pulse_polarity = self.POLARITY[idx]
+        self._polarity_sign = self.POLARITY_SIGN[idx]
         self._set_trigger()
 
     @QtCore.pyqtSlot(int)
@@ -175,15 +178,16 @@ class UserInterface(QtWidgets.QMainWindow):
         self.scope.stop()
         self._offset = np.interp(self._offset_level, [-100, 100],
                                  [-self._range, self._range])
-        self.scope.set_channel('A', 'DC', self._range, self._offset)
+        self.scope.set_channel('A', 'DC', self._range,
+                               self._polarity_sign * self._offset)
         self.event_plot.setYRange(-self._range - self._offset,
                                   self._range - self._offset)
 
     def _set_trigger(self):
         edge = 'RISING' if self._pulse_polarity == 'Positive' else 'FALLING'
         self.scope.stop()
-        self.scope.set_trigger('A', self._threshold, edge,
-                               is_enabled=self._is_trigger_enabled)
+        self.scope.set_trigger('A', self._polarity_sign * self._threshold,
+                               edge, is_enabled=self._is_trigger_enabled)
 
     @QtCore.pyqtSlot(int)
     def set_timebase(self, timebase):
@@ -244,8 +248,7 @@ class UserInterface(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(dict)
     def plot_data(self, data):
-        if self._pulse_polarity == 'Negative':
-            data['y'] *= -1
+        data['y'] *= self._polarity_sign
         if self._is_baseline_correction_enabled:
             num_samples = int(self._pre_samples * .8)
             correction = data['y'][:num_samples].mean(axis=1)
@@ -278,7 +281,9 @@ class UserInterface(QtWidgets.QMainWindow):
                                      bottom='Pulseheight [mV]', left='Counts')
 
     def update_spectrum_plot(self):
-        n, bins = np.histogram(self._pulseheights, bins=100)
+        xmin, xmax = 0, 2 * self._range * 1e3
+        bins = np.linspace(xmin, xmax, 100)
+        n, bins = np.histogram(self._pulseheights, bins=bins)
         x = (bins[:-1] + bins[1:]) / 2
         self.spectrum_plot.clear()
         self.spectrum_plot.plot(x, n, pen='k')
