@@ -251,7 +251,7 @@ class UserInterface(QtWidgets.QMainWindow):
         data['y'] *= self._polarity_sign
         if self._is_baseline_correction_enabled:
             num_samples = int(self._pre_samples * .8)
-            correction = data['y'][:num_samples].mean(axis=1)
+            correction = data['y'][:,:num_samples].mean(axis=1)
         else:
             correction = 0
         pulseheight = ((data['y']).max(axis=1) - correction) * 1e3
