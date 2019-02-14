@@ -380,8 +380,8 @@ class PicoScope5000A:
         """Stop data capture."""
         assert_pico_ok(ps.ps5000aStop(self._handle))
 
-    def set_trigger(self, channel, threshold, direction, is_enabled=True,
-                    delay=0, auto_trigger=0):
+    def set_trigger(self, channel, threshold=0., direction='RISING',
+                    is_enabled=True, delay=0, auto_trigger=0):
         """Set the oscilloscope trigger condition.
 
         :param channel: the source channel for the trigger (e.g. 'A')
