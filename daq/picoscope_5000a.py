@@ -92,10 +92,11 @@ class PicoScope5000A:
 
     def __init__(self, serial=None, resolution_bits=12):
         """Instantiate the class and open the device."""
-        self._channels_enabled = {}
+        self._channels_enabled = {'A': True, 'B': True}
         self._input_voltage_ranges = {}
         self._input_offsets = {}
         self._input_adc_ranges = {}
+        self._buffers = {}
         self.data_is_ready = Event()
         self._callback = callback_factory(self.data_is_ready)
         self.open(serial, resolution_bits)
@@ -165,8 +166,6 @@ class PicoScope5000A:
                 num_captures=1):
         """Start a data collection run and return the data.
 
-        WIP: this method only collects data on channel A.
-
         Start a data collection run and collect a number of captures. The data
         is returned as a twodimensional NumPy array (i.e. a 'list' of captures)
         with data values in volts. An array of time values in seconds is also
@@ -184,16 +183,20 @@ class PicoScope5000A:
 
         num_samples = num_pre_samples + num_post_samples
         time_values = self._calculate_time_values(timebase, num_samples)
-        if data is not None:
-            data = self._rescale_adc_to_V(np.array(data))
 
-        return time_values, data
+        V_data = []
+        for channel, values in zip(self._channels_enabled, data):
+            if self._channels_enabled[channel] is True:
+                V_data.append(self._rescale_adc_to_V(channel,
+                                                     np.array(values)))
+            else:
+                V_data.append(None)
 
-    def measure_adc_values(self, num_pre_samples, num_post_samples, timebase,
+        return time_values, V_data
+
+    def measure_adc_values(self, num_pre_samples, num_post_samples, timebase=4,
                            num_captures=1):
         """Start a data collection run and return the data in ADC values.
-
-        WIP: this method only collects data on channel A.
 
         Start a data collection run in 'rapid block mode' and collect a number
         of captures. The data is returned as a list of NumPy arrays (i.e. a
@@ -223,7 +226,8 @@ class PicoScope5000A:
         :param num_captures: the number of captures.
         """
         self._set_memory_segments(num_captures, num_samples)
-        self._set_data_buffer('A', num_samples, num_captures)
+        for channel in self._get_enabled_channels():
+            self._set_data_buffer(channel, num_samples, num_captures)
 
     def get_adc_data(self):
         """Return all captured data, in ADC values."""
@@ -248,24 +252,26 @@ class PicoScope5000A:
         interval = self.get_interval_from_timebase(timebase, num_samples)
         return interval * np.arange(num_samples) * 1e-9
 
-    def _rescale_adc_to_V(self, data):
+    def _rescale_adc_to_V(self, channel, data):
         """Rescale the ADC data and return float values in volts.
 
-        WIP: this method only rescales correctly for channel A.
+        :param channel: name of the channel
+        :param data: the data to transform
         """
-        voltage_range = self._input_voltage_ranges['A']
-        offset = self._input_offsets['A']
-        max_adc_value = self._input_adc_ranges['A']
+        voltage_range = self._input_voltage_ranges[channel]
+        offset = self._input_offsets[channel]
+        max_adc_value = self._input_adc_ranges[channel]
         return (voltage_range * data) / max_adc_value - offset
 
-    def _rescale_V_to_adc(self, data):
+    def _rescale_V_to_adc(self, channel, data):
         """Rescale float values in volts to ADC values.
 
-        WIP: this method only rescales correctly for channel A.
+        :param channel: name of the channel
+        :param data: the data to transform
         """
-        voltage_range = self._input_voltage_ranges['A']
-        offset = self._input_offsets['A']
-        max_adc_value = self._input_adc_ranges['A']
+        voltage_range = self._input_voltage_ranges[channel]
+        offset = self._input_offsets[channel]
+        max_adc_value = self._input_adc_ranges[channel]
         output = max_adc_value * (data + offset) / voltage_range
         try:
             return output.astype(np.int16)
@@ -306,20 +312,21 @@ class PicoScope5000A:
                 f"A memory segment can only fit {max_samples}, but "
                 f"{num_samples} are required.")
 
-    def _set_data_buffer(self, channel, num_samples, num_captures=1):
+    def _set_data_buffer(self, channel_name, num_samples, num_captures=1):
         """Set up data buffer.
 
-        :param channel: channel name ('A', 'B', etc.)
+        :param channel_name: channel name ('A', 'B', etc.)
         :param num_samples: number of samples required
         :param num_captures: number of captures
         """
-        channel = _get_channel_from_name(channel)
-        self._buffers = [(ctypes.c_int16 * num_samples)() for i in
-                         range(num_captures)]
+        channel = _get_channel_from_name(channel_name)
+        self._buffers[channel_name] = [(ctypes.c_int16 * num_samples)() for
+                                       i in range(num_captures)]
         for segment in range(num_captures):
             assert_pico_ok(ps.ps5000aSetDataBuffer(
-                self._handle, channel, ctypes.byref(self._buffers[segment]),
-                num_samples, segment, 0))
+                self._handle, channel, ctypes.byref(
+                    self._buffers[channel_name][segment]), num_samples,
+                    segment, 0))
 
     def start_run(self, num_pre_samples, num_post_samples, timebase,
                   num_captures=1, callback=None):
@@ -374,7 +381,8 @@ class PicoScope5000A:
         status_msg = PICO_STATUS_LOOKUP[status]
 
         if status_msg == "PICO_OK":
-            return self._buffers
+            return [self._buffers[channel] if is_enabled is True else None
+                    for channel, is_enabled in self._channels_enabled.items()]
         elif status_msg == "PICO_NO_SAMPLES_AVAILABLE":
             return None
         else:
@@ -384,11 +392,11 @@ class PicoScope5000A:
         """Stop data capture."""
         assert_pico_ok(ps.ps5000aStop(self._handle))
 
-    def set_trigger(self, channel, threshold=0., direction='RISING',
+    def set_trigger(self, channel_name, threshold=0., direction='RISING',
                     is_enabled=True, delay=0, auto_trigger=0):
         """Set the oscilloscope trigger condition.
 
-        :param channel: the source channel for the trigger (e.g. 'A')
+        :param channel_name: the source channel for the trigger (e.g. 'A')
         :param threshold: the trigger threshold (in V)
         :param direction: the direction in which the signal must move to cause
             a trigger
@@ -401,12 +409,17 @@ class PicoScope5000A:
         The direction parameter can take values of 'ABOVE', 'BELOW', 'RISING',
         'FALLING' or 'RISING_OR_FALLING'.
         """
-        channel = _get_channel_from_name(channel)
-        threshold = self._rescale_V_to_adc(threshold)
+        channel = _get_channel_from_name(channel_name)
+        threshold = self._rescale_V_to_adc(channel_name, threshold)
         direction = _get_trigger_direction_from_name(direction)
         assert_pico_ok(ps.ps5000aSetSimpleTrigger(
             self._handle, is_enabled, channel, threshold, direction, delay,
             auto_trigger))
+
+    def _get_enabled_channels(self):
+        """Return list of enabled channels."""
+        return [channel for channel, status in self._channels_enabled.items()
+                if status is True]
 
 
 def _get_resolution_from_bits(resolution_bits):
