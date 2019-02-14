@@ -5,7 +5,6 @@ Classes
 PicoScope5000A
     Interface to a 5000 Series PicoScope.
 """
-# WIP: disable all channels on startup
 # WIP: determine if channels C and D are available
 
 import ctypes
@@ -243,9 +242,16 @@ class PicoScope5000A:
         data = self.get_adc_data()
         time_values = self._calculate_time_values(self._timebase,
                                                   self._num_samples)
-        if data is not None:
-            data = self._rescale_adc_to_V(np.array(data))
-        return time_values, data
+
+        V_data = []
+        for channel, values in zip(self._channels_enabled, data):
+            if self._channels_enabled[channel] is True:
+                V_data.append(self._rescale_adc_to_V(channel,
+                                                     np.array(values)))
+            else:
+                V_data.append(None)
+
+        return time_values, V_data
 
     def _calculate_time_values(self, timebase, num_samples):
         """Calculate time values from timebase and number of samples."""
@@ -328,11 +334,9 @@ class PicoScope5000A:
                     self._buffers[channel_name][segment]), num_samples,
                     segment, 0))
 
-    def start_run(self, num_pre_samples, num_post_samples, timebase,
+    def start_run(self, num_pre_samples, num_post_samples, timebase=4,
                   num_captures=1, callback=None):
         """Start a run in (rapid) block mode.
-
-        WIP: this method only collects data on channel A.
 
         Start a data collection run in 'rapid block mode' and collect a number
         of captures. Unlike the :method:`measure` and
