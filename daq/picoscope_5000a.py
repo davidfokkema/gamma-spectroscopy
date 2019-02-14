@@ -92,6 +92,7 @@ class PicoScope5000A:
 
     def __init__(self, serial=None, resolution_bits=12):
         """Instantiate the class and open the device."""
+        self._channels_enabled = {}
         self._input_voltage_ranges = {}
         self._input_offsets = {}
         self._input_adc_ranges = {}
@@ -118,19 +119,21 @@ class PicoScope5000A:
 
         if status_msg == "PICO_OK":
             self._handle = handle
-            return
         elif status_msg == 'PICO_NOT_FOUND':
             raise DeviceNotFoundError()
         else:
             raise PicoSDKError(f"PicoSDK returned {status_msg}")
+
+        self.set_channel('A', is_enabled=False)
+        self.set_channel('B', is_enabled=False)
 
     def close(self):
         """Close the device."""
         assert_pico_ok(ps.ps5000aCloseUnit(self._handle))
         self._handle = None
 
-    def set_channel(self, channel_name, coupling_type, range_value, offset=0,
-                    is_enabled=True):
+    def set_channel(self, channel_name, coupling_type='DC', range_value=1,
+                    offset=0, is_enabled=True):
         """Set up input channels.
 
         :param channel_name: channel name ('A', 'B', etc.)
@@ -156,6 +159,7 @@ class PicoScope5000A:
         assert_pico_ok(ps.ps5000aMaximumValue(self._handle,
                                               ctypes.byref(max_adc_value)))
         self._input_adc_ranges[channel_name] = max_adc_value.value
+        self._channels_enabled[channel_name] = is_enabled
 
     def measure(self, num_pre_samples, num_post_samples, timebase=4,
                 num_captures=1):
