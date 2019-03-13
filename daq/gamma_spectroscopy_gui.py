@@ -273,7 +273,7 @@ class UserInterface(QtWidgets.QMainWindow):
 
     def update_event_plot(self, data):
         self.event_plot.clear()
-        self.event_plot.plot(data['x'] * 1e6, data['y'][-1], pen='k')
+        self.event_plot.plot(data['x'] * 1e6, data['y'][-1], pen={'color': 'k', 'width': 2.})
 
     def init_spectrum_plot(self):
         self.spectrum_plot.clear()
@@ -286,7 +286,7 @@ class UserInterface(QtWidgets.QMainWindow):
         n, bins = np.histogram(self._pulseheights, bins=bins)
         x = (bins[:-1] + bins[1:]) / 2
         self.spectrum_plot.clear()
-        self.spectrum_plot.plot(x, n, pen='k')
+        self.spectrum_plot.plot(x, n, pen={'color': 'k', 'width': 2.})
         self.spectrum_plot.setXRange(0, 2 * self._range * 1e3)
 
 
