@@ -53,7 +53,7 @@ class UserInterface(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self._pulseheights = []
+        self._pulseheights = {'A': [], 'B': []}
 
         self.scope = PicoScope5000A()
 
@@ -180,6 +180,8 @@ class UserInterface(QtWidgets.QMainWindow):
                                  [-self._range, self._range])
         self.scope.set_channel('A', 'DC', self._range,
                                self._polarity_sign * self._offset)
+        self.scope.set_channel('B', 'DC', self._range,
+                               self._polarity_sign * self._offset)
         self.event_plot.setYRange(-self._range - self._offset,
                                   self._range - self._offset)
 
@@ -228,9 +230,9 @@ class UserInterface(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def fetch_data(self):
         self.check_run_time()
-        t, data = self.scope.get_data()
-        if data is not None:
-            self.plot_data_signal.emit({'x': t, 'y': data})
+        t, [A, B] = self.scope.get_data()
+        if A is not None:
+            self.plot_data_signal.emit({'x': t, 'A': A, 'B': B})
         if self._is_running:
             self.start_run_signal.emit()
 
@@ -243,25 +245,29 @@ class UserInterface(QtWidgets.QMainWindow):
     def clear_spectrum(self):
         self._t_start_run = time.time()
         self._update_run_time_label()
-        self._pulseheights = []
+        self._pulseheights = {'A': [], 'B': []}
         self.init_spectrum_plot()
 
     @QtCore.pyqtSlot(dict)
     def plot_data(self, data):
-        data['y'] *= self._polarity_sign
-        if self._is_baseline_correction_enabled:
-            num_samples = int(self._pre_samples * .8)
-            correction = data['y'][:,:num_samples].mean(axis=1)
-        else:
-            correction = 0
-        pulseheight = ((data['y']).max(axis=1) - correction) * 1e3
-        self._pulseheights.extend(pulseheight)
+        x, A, B = data['x'], data['A'], data['B']
+
+        for data, pulseheights in [(A, self._pulseheights['A']),
+                                   (B, self._pulseheights['B'])]:
+            data *= self._polarity_sign
+            if self._is_baseline_correction_enabled:
+                num_samples = int(self._pre_samples * .8)
+                correction = data[:, :num_samples].mean(axis=1)
+            else:
+                correction = 0
+            ph = (data.max(axis=1) - correction) * 1e3
+            pulseheights.extend(ph)
 
         t = time.time()
         interval = 1 / self.plot_limit_box.value()
         if t - self._t_last_plot_update > interval:
             self._t_last_plot_update = t
-            self.update_event_plot(data)
+            self.update_event_plot(x, A, B)
             self.update_spectrum_plot()
 
     def init_event_plot(self):
@@ -271,9 +277,10 @@ class UserInterface(QtWidgets.QMainWindow):
         self.event_plot.setYRange(-self._range - self._offset,
                                   self._range - self._offset)
 
-    def update_event_plot(self, data):
+    def update_event_plot(self, x, A, B):
         self.event_plot.clear()
-        self.event_plot.plot(data['x'] * 1e6, data['y'][-1], pen={'color': 'k', 'width': 2.})
+        self.event_plot.plot(x * 1e6, A[-1], pen={'color': 'k', 'width': 2.})
+        self.event_plot.plot(x * 1e6, B[-1], pen={'color': 'b', 'width': 2.})
 
     def init_spectrum_plot(self):
         self.spectrum_plot.clear()
@@ -281,12 +288,13 @@ class UserInterface(QtWidgets.QMainWindow):
                                      bottom='Pulseheight [mV]', left='Counts')
 
     def update_spectrum_plot(self):
-        xmin, xmax = 0, 2 * self._range * 1e3
-        bins = np.linspace(xmin, xmax, 100)
-        n, bins = np.histogram(self._pulseheights, bins=bins)
-        x = (bins[:-1] + bins[1:]) / 2
         self.spectrum_plot.clear()
-        self.spectrum_plot.plot(x, n, pen={'color': 'k', 'width': 2.})
+        for channel, color in [('A', 'k'), ('B', 'b')]:
+            xmin, xmax = 0, 2 * self._range * 1e3
+            bins = np.linspace(xmin, xmax, 100)
+            n, bins = np.histogram(self._pulseheights[channel], bins=bins)
+            x = (bins[:-1] + bins[1:]) / 2
+            self.spectrum_plot.plot(x, n, pen={'color': color, 'width': 2.})
         self.spectrum_plot.setXRange(0, 2 * self._range * 1e3)
 
 
