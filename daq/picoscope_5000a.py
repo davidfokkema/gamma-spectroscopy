@@ -240,6 +240,8 @@ class PicoScope5000A:
 
         """
         data = self.get_adc_data()
+        if data is None:
+            return None, None
         time_values = self._calculate_time_values(self._timebase,
                                                   self._num_samples)
 
