@@ -86,6 +86,7 @@ class UserInterface(QtWidgets.QMainWindow):
         self.offset_box.valueChanged.connect(self.set_offset)
         self.threshold_box.valueChanged.connect(self.set_threshold)
         self.trigger_box.stateChanged.connect(self.set_trigger_state)
+        self.trigger_channel_box.currentTextChanged.connect(self.set_trigger)
         self.timebase_box.valueChanged.connect(self.set_timebase)
         self.pre_trigger_box.valueChanged.connect(self.set_pre_trigger_window)
         self.post_trigger_box.valueChanged.connect(self.set_post_trigger_window)
@@ -146,29 +147,29 @@ class UserInterface(QtWidgets.QMainWindow):
         ranges = list(INPUT_RANGES.keys())
         self._range = ranges[range_idx]
         self._set_channel()
-        self._set_trigger()
+        self.set_trigger()
 
     @QtCore.pyqtSlot(float)
     def set_offset(self, offset_level):
         self._offset_level = offset_level
         self._set_channel()
-        self._set_trigger()
+        self.set_trigger()
 
     @QtCore.pyqtSlot(float)
     def set_threshold(self, threshold):
         self._threshold = threshold
-        self._set_trigger()
+        self.set_trigger()
 
     @QtCore.pyqtSlot(int)
     def set_trigger_state(self, state):
         self._is_trigger_enabled = state
-        self._set_trigger()
+        self.set_trigger()
 
     @QtCore.pyqtSlot(int)
     def set_polarity(self, idx):
         self._pulse_polarity = self.POLARITY[idx]
         self._polarity_sign = self.POLARITY_SIGN[idx]
-        self._set_trigger()
+        self.set_trigger()
 
     @QtCore.pyqtSlot(int)
     def set_baseline_correction_state(self, state):
@@ -185,10 +186,12 @@ class UserInterface(QtWidgets.QMainWindow):
         self.event_plot.setYRange(-self._range - self._offset,
                                   self._range - self._offset)
 
-    def _set_trigger(self):
+    def set_trigger(self):
         edge = 'RISING' if self._pulse_polarity == 'Positive' else 'FALLING'
         self.scope.stop()
-        self.scope.set_trigger('A', self._polarity_sign * self._threshold,
+        # get last letter of trigger channel box ('Channel A' -> 'A')
+        channel = self.trigger_channel_box.currentText()[-1]
+        self.scope.set_trigger(channel, self._polarity_sign * self._threshold,
                                edge, is_enabled=self._is_trigger_enabled)
 
     @QtCore.pyqtSlot(int)
