@@ -298,7 +298,9 @@ class UserInterface(QtWidgets.QMainWindow):
         for channel, color in [('A', 'k'), ('B', 'b')]:
             box = getattr(self, f'ch_{channel}_enabled_box')
             if box.isChecked():
-                xmin, xmax = 0, 2 * self._range * 1e3
+                xrange = 2 * self._range * 1e3
+                xmin = .01 * self.lld_box.value() * xrange
+                xmax = .01 * self.uld_box.value() * xrange
                 bins = np.linspace(xmin, xmax, 100)
                 n, bins = np.histogram(self._pulseheights[channel], bins=bins)
                 x = (bins[:-1] + bins[1:]) / 2
