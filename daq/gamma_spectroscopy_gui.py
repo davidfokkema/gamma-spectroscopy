@@ -93,6 +93,7 @@ class UserInterface(QtWidgets.QMainWindow):
         self.baseline_correction_box.stateChanged.connect(self.set_baseline_correction_state)
 
         self.clear_spectrum_button.clicked.connect(self.clear_spectrum)
+        self.single_button.clicked.connect(self.start_scope_run)
         self.run_stop_button.clicked.connect(self.toggle_run_stop)
 
         self.run_timer.timeout.connect(self._update_run_time_label)
