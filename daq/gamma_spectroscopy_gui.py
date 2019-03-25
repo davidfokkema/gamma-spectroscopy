@@ -99,15 +99,15 @@ class UserInterface(QtWidgets.QMainWindow):
         self.init_event_plot()
         self.init_spectrum_plot()
 
-        self._trigger_value_changed_signal(self.offset_box)
-        self._trigger_value_changed_signal(self.threshold_box)
-        self._trigger_value_changed_signal(self.timebase_box)
-        self._trigger_value_changed_signal(self.pre_trigger_box)
-        self._trigger_value_changed_signal(self.post_trigger_box)
+        self._emit_value_changed_signal(self.offset_box)
+        self._emit_value_changed_signal(self.threshold_box)
+        self._emit_value_changed_signal(self.timebase_box)
+        self._emit_value_changed_signal(self.pre_trigger_box)
+        self._emit_value_changed_signal(self.post_trigger_box)
 
         self.show()
 
-    def _trigger_value_changed_signal(self, widget):
+    def _emit_value_changed_signal(self, widget):
         widget.valueChanged.emit(widget.value())
 
     @QtCore.pyqtSlot()
