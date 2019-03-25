@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
-    <height>609</height>
+    <width>935</width>
+    <height>673</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -76,19 +76,26 @@
           <item>
            <widget class="PlotWidget" name="spectrum_plot"/>
           </item>
-          <item>
-           <widget class="QPushButton" name="clear_spectrum_button">
-            <property name="text">
-             <string>Restart run and clear spectrum</string>
-            </property>
-           </widget>
-          </item>
          </layout>
         </widget>
        </widget>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QPushButton" name="clear_spectrum_button">
+          <property name="text">
+           <string>Clear</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="single_button">
+          <property name="text">
+           <string>Single</string>
+          </property>
+         </widget>
+        </item>
         <item>
          <widget class="QPushButton" name="run_stop_button">
           <property name="text">
@@ -418,6 +425,43 @@
           </property>
          </widget>
         </item>
+        <item row="15" column="0">
+         <widget class="QLabel" name="label_19">
+          <property name="text">
+           <string>Lower level discriminator:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="16" column="0">
+         <widget class="QLabel" name="label_20">
+          <property name="text">
+           <string>Upper level discriminator:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="15" column="1">
+         <widget class="QDoubleSpinBox" name="lld_box">
+          <property name="suffix">
+           <string>%</string>
+          </property>
+          <property name="decimals">
+           <number>1</number>
+          </property>
+         </widget>
+        </item>
+        <item row="16" column="1">
+         <widget class="QDoubleSpinBox" name="uld_box">
+          <property name="suffix">
+           <string>%</string>
+          </property>
+          <property name="decimals">
+           <number>1</number>
+          </property>
+          <property name="value">
+           <double>100.000000000000000</double>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
       <item>
@@ -491,7 +535,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>800</width>
+     <width>935</width>
      <height>22</height>
     </rect>
    </property>
