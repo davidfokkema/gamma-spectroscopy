@@ -127,6 +127,7 @@ class UserInterface(QtWidgets.QMainWindow):
             self.run_timer.start()
             self.start_run_signal.emit()
             self.run_stop_button.setText("Stop")
+            self.single_button.setDisabled(True)
 
     def stop_run(self):
             self._is_running = False
@@ -134,6 +135,7 @@ class UserInterface(QtWidgets.QMainWindow):
             self.scope.stop()
             self.run_timer.stop()
             self.run_stop_button.setText("Run")
+            self.single_button.setDisabled(False)
 
     @QtCore.pyqtSlot()
     def start_scope_run(self):
