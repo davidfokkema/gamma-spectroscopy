@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>935</width>
-    <height>673</height>
+    <height>707</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -242,6 +242,37 @@
           </property>
          </widget>
         </item>
+        <item row="4" column="0">
+         <widget class="QLabel" name="label_16">
+          <property name="text">
+           <string>Trigger on:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="4" column="1">
+         <widget class="QComboBox" name="trigger_channel_box">
+          <item>
+           <property name="text">
+            <string>Channel A</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>Channel B</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="label_14">
+          <property name="text">
+           <string>Pulse polarity:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="1">
+         <widget class="QComboBox" name="polarity_box"/>
+        </item>
         <item row="6" column="0">
          <widget class="QLabel" name="label_7">
           <property name="text">
@@ -353,13 +384,10 @@
           </property>
          </widget>
         </item>
-        <item row="5" column="1">
-         <widget class="QComboBox" name="polarity_box"/>
-        </item>
-        <item row="5" column="0">
-         <widget class="QLabel" name="label_14">
+        <item row="12" column="0">
+         <widget class="QLabel" name="label_15">
           <property name="text">
-           <string>Pulse polarity:</string>
+           <string>Baseline correction:</string>
           </property>
          </widget>
         </item>
@@ -373,46 +401,11 @@
           </property>
          </widget>
         </item>
-        <item row="12" column="0">
-         <widget class="QLabel" name="label_15">
-          <property name="text">
-           <string>Baseline correction:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QLabel" name="label_16">
-          <property name="text">
-           <string>Trigger on:</string>
-          </property>
-         </widget>
-        </item>
         <item row="13" column="0">
          <widget class="QLabel" name="label_17">
           <property name="text">
            <string>Show channel A:</string>
           </property>
-         </widget>
-        </item>
-        <item row="14" column="0">
-         <widget class="QLabel" name="label_18">
-          <property name="text">
-           <string>Show channel B:</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="1">
-         <widget class="QComboBox" name="trigger_channel_box">
-          <item>
-           <property name="text">
-            <string>Channel A</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>Channel B</string>
-           </property>
-          </item>
          </widget>
         </item>
         <item row="13" column="1">
@@ -422,6 +415,13 @@
           </property>
           <property name="checked">
            <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="14" column="0">
+         <widget class="QLabel" name="label_18">
+          <property name="text">
+           <string>Show channel B:</string>
           </property>
          </widget>
         </item>
@@ -439,13 +439,6 @@
           </property>
          </widget>
         </item>
-        <item row="16" column="0">
-         <widget class="QLabel" name="label_20">
-          <property name="text">
-           <string>Upper level discriminator:</string>
-          </property>
-         </widget>
-        </item>
         <item row="15" column="1">
          <widget class="QDoubleSpinBox" name="lld_box">
           <property name="suffix">
@@ -453,6 +446,13 @@
           </property>
           <property name="decimals">
            <number>1</number>
+          </property>
+         </widget>
+        </item>
+        <item row="16" column="0">
+         <widget class="QLabel" name="label_20">
+          <property name="text">
+           <string>Upper level discriminator:</string>
           </property>
          </widget>
         </item>
@@ -466,6 +466,23 @@
           </property>
           <property name="value">
            <double>100.000000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="17" column="0">
+         <widget class="QLabel" name="label_21">
+          <property name="text">
+           <string>Histogram bins:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="17" column="1">
+         <widget class="QSpinBox" name="num_bins_box">
+          <property name="maximum">
+           <number>4095</number>
+          </property>
+          <property name="value">
+           <number>100</number>
           </property>
          </widget>
         </item>

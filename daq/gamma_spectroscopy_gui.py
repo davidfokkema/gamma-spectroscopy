@@ -309,7 +309,7 @@ class UserInterface(QtWidgets.QMainWindow):
                 xrange = 2 * self._range * 1e3
                 xmin = .01 * self.lld_box.value() * xrange
                 xmax = .01 * self.uld_box.value() * xrange
-                bins = np.linspace(xmin, xmax, 100)
+                bins = np.linspace(xmin, xmax, self.num_bins_box.value())
                 n, bins = np.histogram(self._pulseheights[channel], bins=bins)
                 x = (bins[:-1] + bins[1:]) / 2
                 self.spectrum_plot.plot(x, n, pen={'color': color, 'width': 2.})
