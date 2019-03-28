@@ -29,6 +29,8 @@ class UserInterface(QtWidgets.QMainWindow):
 
     run_timer = QtCore.QTimer(interval=1000)
 
+    num_events = 0
+
     _is_running = False
     _is_trigger_enabled = False
     _pulse_polarity = 'Positive'
@@ -123,6 +125,7 @@ class UserInterface(QtWidgets.QMainWindow):
             self._is_running = True
             self.clear_spectrum()
             self._t_start_run = time.time()
+            self.num_events = 0
             self._update_run_time_label()
             self.run_timer.start()
             self.start_run_signal.emit()
@@ -232,11 +235,13 @@ class UserInterface(QtWidgets.QMainWindow):
     def _update_run_time_label(self):
         run_time = round(time.time() - self._t_start_run)
         self.run_time_label.setText(f"{run_time} s")
+        self.num_events_label.setText(f"({self.num_events} events)")
 
     @QtCore.pyqtSlot()
     def fetch_data(self):
         t, [A, B] = self.scope.get_data()
         if A is not None:
+            self.num_events += len(A)
             self.plot_data_signal.emit({'x': t, 'A': A, 'B': B})
         if self._is_running:
             self.start_run_signal.emit()
@@ -250,8 +255,9 @@ class UserInterface(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot()
     def clear_spectrum(self):
         self._t_start_run = time.time()
-        self._update_run_time_label()
+        self.num_events = 0
         self._pulseheights = {'A': [], 'B': []}
+        self._update_run_time_label()
         self.init_spectrum_plot()
 
     @QtCore.pyqtSlot(dict)
