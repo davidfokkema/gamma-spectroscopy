@@ -292,9 +292,9 @@ class UserInterface(QtWidgets.QMainWindow):
     def update_event_plot(self, x, A, B):
         self.event_plot.clear()
         if self.ch_A_enabled_box.isChecked():
-            self.event_plot.plot(x * 1e6, A[-1], pen={'color': 'k', 'width': 2.})
+            self.event_plot.plot(x * 1e6, A[-1], pen={'color': 'k', 'width': 4.})
         if self.ch_B_enabled_box.isChecked():
-            self.event_plot.plot(x * 1e6, B[-1], pen={'color': 'b', 'width': 2.})
+            self.event_plot.plot(x * 1e6, B[-1], pen={'color': 'b', 'width': 4.})
 
     def init_spectrum_plot(self):
         self.spectrum_plot.clear()
@@ -312,7 +312,7 @@ class UserInterface(QtWidgets.QMainWindow):
                 bins = np.linspace(xmin, xmax, self.num_bins_box.value())
                 n, bins = np.histogram(self._pulseheights[channel], bins=bins)
                 x = (bins[:-1] + bins[1:]) / 2
-                self.spectrum_plot.plot(x, n, pen={'color': color, 'width': 2.})
+                self.spectrum_plot.plot(x, n, pen={'color': color, 'width': 4.})
         self.spectrum_plot.setXRange(0, 2 * self._range * 1e3)
 
 
