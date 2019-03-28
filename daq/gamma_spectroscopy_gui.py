@@ -94,6 +94,10 @@ class UserInterface(QtWidgets.QMainWindow):
         self.post_trigger_box.valueChanged.connect(self.set_post_trigger_window)
         self.baseline_correction_box.stateChanged.connect(self.set_baseline_correction_state)
 
+        self.lld_box.valueChanged.connect(self.update_spectrum_plot)
+        self.uld_box.valueChanged.connect(self.update_spectrum_plot)
+        self.num_bins_box.valueChanged.connect(self.update_spectrum_plot)
+
         self.clear_spectrum_button.clicked.connect(self.clear_spectrum)
         self.single_button.clicked.connect(self.start_scope_run)
         self.run_stop_button.clicked.connect(self.toggle_run_stop)
