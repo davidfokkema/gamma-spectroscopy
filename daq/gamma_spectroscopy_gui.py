@@ -70,7 +70,19 @@ class UserInterface(QtWidgets.QMainWindow):
         pg.setConfigOption('foreground', 'k')
 
         ui_path = 'gamma_spectroscopy_gui.ui'
-        uic.loadUi(ui_path, self)
+        layout = uic.loadUi(ui_path, self)
+
+        # Menubar
+        menubar = QtWidgets.QMenuBar()
+
+        export_data_action = QtWidgets.QAction('&Export data', self)
+        export_data_action.triggered.connect(self.export_data_dialog)
+
+        file_menu = menubar.addMenu('&File')
+        file_menu.addAction(export_data_action)
+
+        layout.setMenuBar(menubar)
+
 
         self.start_run_signal.connect(self.start_scope_run)
 
@@ -318,6 +330,12 @@ class UserInterface(QtWidgets.QMainWindow):
                 x = (bins[:-1] + bins[1:]) / 2
                 self.spectrum_plot.plot(x, n, pen={'color': color, 'width': 4.})
         self.spectrum_plot.setXRange(0, 2 * self._range * 1e3)
+
+    def export_data_dialog(self):
+        """Dialog for exporting a data file."""
+
+        file_path, _ = QtWidgets.QFileDialog.getSaveFileName(self)
+        print(file_path)
 
 
 if __name__ == '__main__':
