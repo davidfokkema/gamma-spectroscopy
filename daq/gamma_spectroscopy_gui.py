@@ -235,12 +235,12 @@ class UserInterface(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def fetch_data(self):
-        self.check_run_time()
         t, [A, B] = self.scope.get_data()
         if A is not None:
             self.plot_data_signal.emit({'x': t, 'A': A, 'B': B})
         if self._is_running:
             self.start_run_signal.emit()
+        self.check_run_time()
 
     def check_run_time(self):
         run_time = time.time() - self._t_start_run
