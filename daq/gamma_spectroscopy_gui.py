@@ -49,9 +49,7 @@ class UserInterface(QtWidgets.QMainWindow):
     _post_samples = 0
     _num_samples = 0
 
-    _t_last_plot_update = 0
     _t_start_run = 0
-
 
     def __init__(self):
         super().__init__()
