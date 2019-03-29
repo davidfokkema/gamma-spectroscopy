@@ -293,12 +293,8 @@ class UserInterface(QtWidgets.QMainWindow):
             ph = (data.max(axis=1) - correction) * 1e3
             pulseheights.extend(ph)
 
-        t = time.time()
-        interval = 1 / self.plot_limit_box.value()
-        if t - self._t_last_plot_update > interval:
-            self._t_last_plot_update = t
-            self.update_event_plot(x, A, B)
-            self.update_spectrum_plot()
+        self.update_event_plot(x, A, B)
+        self.update_spectrum_plot()
 
     def init_event_plot(self):
         self.event_plot.clear()
