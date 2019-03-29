@@ -1,3 +1,4 @@
+import csv
 import ctypes
 from math import floor
 import sys
@@ -75,11 +76,12 @@ class UserInterface(QtWidgets.QMainWindow):
         # Menubar
         menubar = QtWidgets.QMenuBar()
 
-        export_data_action = QtWidgets.QAction('&Export data', self)
-        export_data_action.triggered.connect(self.export_data_dialog)
+        export_spectrum_action = QtWidgets.QAction('&Export spectrum', self)
+        export_spectrum_action.setShortcut('Ctrl+S')
+        export_spectrum_action.triggered.connect(self.export_spectrum_dialog)
 
         file_menu = menubar.addMenu('&File')
-        file_menu.addAction(export_data_action)
+        file_menu.addAction(export_spectrum_action)
 
         layout.setMenuBar(menubar)
 
@@ -319,23 +321,46 @@ class UserInterface(QtWidgets.QMainWindow):
 
     def update_spectrum_plot(self):
         self.spectrum_plot.clear()
-        for channel, color in [('A', 'k'), ('B', 'b')]:
-            box = getattr(self, f'ch_{channel}_enabled_box')
-            if box.isChecked():
-                xrange = 2 * self._range * 1e3
-                xmin = .01 * self.lld_box.value() * xrange
-                xmax = .01 * self.uld_box.value() * xrange
-                bins = np.linspace(xmin, xmax, self.num_bins_box.value())
-                n, bins = np.histogram(self._pulseheights[channel], bins=bins)
-                x = (bins[:-1] + bins[1:]) / 2
-                self.spectrum_plot.plot(x, n, pen={'color': color, 'width': 4.})
+        x, bins, channel_counts = self.make_spectrum()
+        for counts, color in zip(channel_counts, ['k', 'b']):
+            if counts is not None:
+                self.spectrum_plot.plot(x, counts, pen={'color': color,
+                                                        'width': 4.})
         self.spectrum_plot.setXRange(0, 2 * self._range * 1e3)
 
-    def export_data_dialog(self):
+    def make_spectrum(self):
+        xrange = 2 * self._range * 1e3
+        xmin = .01 * self.lld_box.value() * xrange
+        xmax = .01 * self.uld_box.value() * xrange
+        bins = np.linspace(xmin, xmax, self.num_bins_box.value())
+        x = (bins[:-1] + bins[1:]) / 2
+        channel_counts = []
+
+        for channel in 'A', 'B':
+            box = getattr(self, f'ch_{channel}_enabled_box')
+            if box.isChecked():
+                n, _ = np.histogram(self._pulseheights[channel], bins=bins)
+                channel_counts.append(n)
+            else:
+                channel_counts.append(None)
+
+        return x, bins, channel_counts
+
+    def export_spectrum_dialog(self):
         """Dialog for exporting a data file."""
 
-        file_path, _ = QtWidgets.QFileDialog.getSaveFileName(self)
-        print(file_path)
+        file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self, caption="Save spectrum", directory="spectrum.csv")
+
+        x, _, channel_counts = self.make_spectrum()
+        channel_counts = [u if u is not None else [0] * len(x) for
+                          u in channel_counts]
+
+        with open(file_path, 'w') as f:
+            writer = csv.writer(f)
+            writer.writerow(('pulseheight', 'counts_ch_A', 'counts_ch_B'))
+            for row in zip(x, *channel_counts):
+                writer.writerow(row)
 
 
 if __name__ == '__main__':
