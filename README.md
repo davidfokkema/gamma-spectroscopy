@@ -1,8 +1,5 @@
-# daq (placeholder name)
+# Gamma spectroscopy
 
-This is a first iteration of a data acquisition app for gamma spectroscopy. The
-name will change, so this repository will probably be renamed in the near
-future. However, I wanted to switch this repository from private to public for
-easier access.
+This is a first iteration of a data acquisition app for gamma spectroscopy. The Qt app requires a 5000-series PicoScope (e.g. the 5242D) for data acquisition.
 
 Work will continue.
