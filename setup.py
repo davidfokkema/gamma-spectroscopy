@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="gamma-spectroscopy",
-    version="0.9",
+    version="0.9.0",
     author="David Fokkema",
     author_email="davidfokkema@icloud.com",
     description="A GUI for gamma spectroscopy using a PicoScope",
@@ -13,6 +13,11 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/davidfokkema/gamma-spectroscopy",
     packages=setuptools.find_packages(),
+    entry_points={
+        'gui_scripts': [
+            'gamma-spectroscopy=gamma_spectroscopy.gamma_spectroscopy_gui:main',
+        ],
+    },
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
