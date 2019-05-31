@@ -9,7 +9,7 @@ import numpy as np
 from PyQt5 import uic, QtWidgets, QtCore
 import pyqtgraph as pg
 
-from picoscope_5000a import PicoScope5000A, INPUT_RANGES
+from .picoscope_5000a import PicoScope5000A, INPUT_RANGES
 
 
 def create_callback(signal):
@@ -357,7 +357,11 @@ class UserInterface(QtWidgets.QMainWindow):
                 writer.writerow(row)
 
 
-if __name__ == '__main__':
+def main():
     qtapp = QtWidgets.QApplication(sys.argv)
     ui = UserInterface()
     sys.exit(qtapp.exec_())
+
+
+if __name__ == '__main__':
+    main()
