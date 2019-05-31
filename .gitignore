@@ -1,3 +1,6 @@
-*.egg-info/
 *.pyc
 *.h5
+
+*.egg-info/
+build/
+dist/
