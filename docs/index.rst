@@ -16,6 +16,8 @@ This is a first iteration of a data acquisition app for gamma spectroscopy. The 
    :maxdepth: 2
    :caption: Contents:
 
+   introduction
+   userguide
 
 
 Indices and tables
