@@ -17,6 +17,7 @@ This is a first iteration of a data acquisition app for gamma spectroscopy. The 
    :caption: Contents:
 
    introduction
+   userguide
 
 
 Indices and tables
