@@ -15,4 +15,58 @@ We're currently experimenting with replacing all NIM modules with a single PicoS
 .. figure:: images/screenshot-spectrum.png
    :alt: screenshot showing a spectrum plot
 
-   Screenshot of the GUI showing a plot of the gamma spectrum of a nuclear source (sodium-22).
+   Screenshot of the GUI showing a plot of the gamma spectrum of a nuclear source (sodium-22, black line). Another detector at the opposite side of the source picks up coincident annihilation radiation gammas.
+
+
+Installation
+------------
+
+In this section we will cover the installation of the gamma-spectroscopy package as well as the prerequisites (see below).
+
+Prerequisites
+^^^^^^^^^^^^^
+
+* PicoSDK
+* Python wrappers for PicoSDK
+* NumPy
+* PyQt5
+* PyQtGraph
+
+To install the PicoSDK C libraries, follow the instructions at https://github.com/picotech/picosdk-python-wrappers. To install the wrapper itself, you can follow the instructions at that page or simply install from GitHub (you need to have Git installed):
+
+.. code-block:: console
+
+   $ pip install git+https://github.com/picotech/picosdk-python-wrappers
+
+To install NumPy and the Qt5 packages you can use e.g. pip or conda, depending on your current Python setup. For example, using conda:
+
+.. code-block:: console
+
+   $ conda install numpy pyqt pyqtgraph
+
+Gamma-spectroscopy
+^^^^^^^^^^^^^^^^^^
+
+You can install the latest release of this package directly from PyPI:
+
+.. code-block:: console
+
+   $ pip install gamma-spectroscopy
+
+or, alternatively, you can install the latest development version from GitHub:
+
+.. code-block:: console
+
+   $ pip install git+https://github.com/davidfokkema/gamma-spectroscopy
+
+
+Running the application
+-----------------------
+
+You can start the application GUI directly from the command-line:
+
+.. code-block:: console
+
+   $ gamma-spectroscopy
+
+We will look into ways to include gamma-spectroscopy in Anaconda Navigator or as a stand-alone application so you don't first have to start a console.
