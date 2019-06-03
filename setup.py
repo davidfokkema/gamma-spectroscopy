@@ -1,11 +1,11 @@
 import setuptools
 
-with open("README.md", "r") as fh:
+with open("README.rst", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
     name="gamma-spectroscopy",
-    version="0.9.0",
+    version="0.9.1",
     author="David Fokkema",
     author_email="davidfokkema@icloud.com",
     description="A GUI for gamma spectroscopy using a PicoScope",
@@ -13,8 +13,11 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/davidfokkema/gamma-spectroscopy",
     packages=setuptools.find_packages(),
+    package_data={
+        '': ['*.ui'],
+    },
     entry_points={
-        'gui_scripts': [
+        'console_scripts': [
             'gamma-spectroscopy=gamma_spectroscopy.gamma_spectroscopy_gui:main',
         ],
     },
