@@ -34,7 +34,9 @@ class UserInterface(QtWidgets.QMainWindow):
     num_events = 0
 
     _is_running = False
+    _trigger_channel = 'A'
     _is_trigger_enabled = False
+    _is_upper_threshold_enabled = False
     _pulse_polarity = 'Positive'
     _polarity_sign = 1
     _is_baseline_correction_enabled = True
@@ -43,6 +45,7 @@ class UserInterface(QtWidgets.QMainWindow):
     _offset_level = 0.
     _offset = 0.
     _threshold = 0.
+    _upper_threshold = 1.
     _timebase = 0
     _pre_trigger_window = 0.
     _post_trigger_window = 0.
@@ -100,7 +103,9 @@ class UserInterface(QtWidgets.QMainWindow):
         self._pulse_polarity = self.POLARITY[0]
         self.offset_box.valueChanged.connect(self.set_offset)
         self.threshold_box.valueChanged.connect(self.set_threshold)
+        self.upper_threshold_box.valueChanged.connect(self.set_upper_threshold)
         self.trigger_box.stateChanged.connect(self.set_trigger_state)
+        self.upper_trigger_box.stateChanged.connect(self.set_upper_trigger_state)
         self.trigger_channel_box.currentTextChanged.connect(self.set_trigger)
         self.timebase_box.valueChanged.connect(self.set_timebase)
         self.pre_trigger_box.valueChanged.connect(self.set_pre_trigger_window)
@@ -183,10 +188,18 @@ class UserInterface(QtWidgets.QMainWindow):
         self._threshold = threshold
         self.set_trigger()
 
+    @QtCore.pyqtSlot(float)
+    def set_upper_threshold(self, threshold):
+        self._upper_threshold = threshold
+
     @QtCore.pyqtSlot(int)
     def set_trigger_state(self, state):
         self._is_trigger_enabled = state
         self.set_trigger()
+
+    @QtCore.pyqtSlot(int)
+    def set_upper_trigger_state(self, state):
+        self._is_upper_threshold_enabled = state
 
     @QtCore.pyqtSlot(int)
     def set_polarity(self, idx):
@@ -214,6 +227,7 @@ class UserInterface(QtWidgets.QMainWindow):
         self.scope.stop()
         # get last letter of trigger channel box ('Channel A' -> 'A')
         channel = self.trigger_channel_box.currentText()[-1]
+        self._trigger_channel = channel
         self.scope.set_trigger(channel, self._polarity_sign * self._threshold,
                                edge, is_enabled=self._is_trigger_enabled)
 
@@ -281,8 +295,8 @@ class UserInterface(QtWidgets.QMainWindow):
     def plot_data(self, data):
         x, A, B = data['x'], data['A'], data['B']
 
-        for data, pulseheights in [(A, self._pulseheights['A']),
-                                   (B, self._pulseheights['B'])]:
+        pulseheights = []
+        for data in A, B:
             data *= self._polarity_sign
             if self._is_baseline_correction_enabled:
                 num_samples = int(self._pre_samples * .8)
@@ -290,7 +304,17 @@ class UserInterface(QtWidgets.QMainWindow):
             else:
                 correction = 0
             ph = (data.max(axis=1) - correction) * 1e3
-            pulseheights.extend(ph)
+            pulseheights.append(ph)
+
+        pulseheights = np.array(pulseheights)
+        if self._is_upper_threshold_enabled:
+            channel_idx = ['A', 'B'].index(self._trigger_channel)
+            pulseheights = pulseheights.compress(
+                pulseheights[channel_idx, :] <= self._upper_threshold * 1e3,
+                axis=1)
+
+        for channel, values in zip(['A', 'B'], pulseheights):
+            self._pulseheights[channel].extend(values)
 
         self.update_event_plot(x, A, B)
         self.update_spectrum_plot()
