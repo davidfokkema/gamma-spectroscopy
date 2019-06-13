@@ -18,12 +18,12 @@ from picosdk.constants import PICO_STATUS_LOOKUP
 
 
 INPUT_RANGES = {
-    0.01: '10MV',
-    0.02: '20MV',
-    0.05: '50MV',
-    0.1: '100MV',
-    0.2: '200MV',
-    0.5: '500MV',
+    0.01: '10mV',
+    0.02: '20mV',
+    0.05: '50mV',
+    0.1: '100mV',
+    0.2: '200mV',
+    0.5: '500mV',
     1: '1V',
     2: '2V',
     5: '5V',
@@ -460,7 +460,7 @@ def _get_coupling_type_from_name(coupling_type_name):
 def _get_range_from_value(range):
     """Return the range from the range in volts."""
     if range in INPUT_RANGES:
-        range_name = INPUT_RANGES[range]
+        range_name = INPUT_RANGES[range].upper()
         def_name = f"PS5000A_{range_name}"
     else:
         raise InvalidParameterError(f"Range {range} V is not supported")
