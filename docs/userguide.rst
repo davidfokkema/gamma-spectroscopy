@@ -77,8 +77,14 @@ Baseline correction
 Show Channel A / Show Channel B
    Enable or disable the PicoScope channels.
 
+Upper threshold (SW)
+   If signals cross this level on the trigger channel, the entire event is discarded. In other words, the signal must stay below this threshold. It works almost exactly as an upper trigger threshold. The difference is that this `trigger' is implemented in software, and that the baseline correction is performed on the data before applying this trigger. This makes it easy to select the upper threshold based on data in the spectrum plot since baseline fluctuations are eliminated.
+
+Enable upper threshold
+   When enabled, the software will only detect events below a certain threshold.
+
 Lower level discriminator / Upper level discriminator
-   In the *Spectrum plot* window, discard data outside the discriminator levels.
+   In the *Spectrum plot* window, hide data outside the discriminator levels. Note that the data is not actually discarded. If you change the levels, hidden data can become visible again. This is in contrast to the *threshold levels*.
 
 Histogram bins
    The number of bins in the histogram. This value can be adjusted during and after taking data, without loss of the original pulse height values.
