@@ -61,6 +61,7 @@ class FakePicoScope:
         self._buffers = {}
         self.data_is_ready = Event()
         self._callback = callback_factory(self.data_is_ready)
+        self._timer = None
 
     def open(self, serial=None, resolution_bits=12):
         """Open the device.
@@ -180,16 +181,18 @@ class FakePicoScope:
             callback = self._callback
         self.data_is_ready.clear()
 
-        timer = Timer(0.5, callback, (ctypes.c_int16(), ctypes.c_int(),
-                                      ctypes.c_void_p()))
-        timer.start()
+        self._timer = Timer(0.5, callback, (ctypes.c_int16(), ctypes.c_int(),
+                                            ctypes.c_void_p()))
+        self._timer.start()
 
     def wait_for_data(self):
         """Wait for device to finish data capture."""
         self.data_is_ready.wait()
 
     def stop(self):
-        raise NotImplementedError
+        """Stop data capture."""
+        if self._timer is not None:
+            self._timer.cancel()
 
     def set_trigger(self, channel_name, threshold=0., direction='RISING',
                     is_enabled=True, delay=0, auto_trigger=0):

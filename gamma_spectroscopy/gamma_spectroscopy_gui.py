@@ -11,6 +11,7 @@ from PyQt5 import uic, QtWidgets, QtCore
 import pyqtgraph as pg
 
 from .picoscope_5000a import PicoScope5000A, INPUT_RANGES
+from .fake_picoscope import FakePicoScope
 
 
 def create_callback(signal):
@@ -60,7 +61,8 @@ class UserInterface(QtWidgets.QMainWindow):
 
         self._pulseheights = {'A': [], 'B': []}
 
-        self.scope = PicoScope5000A()
+        # self.scope = PicoScope5000A()
+        self.scope = FakePicoScope()
 
         self.init_ui()
 
