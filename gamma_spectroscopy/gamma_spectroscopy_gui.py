@@ -74,7 +74,7 @@ class UserInterface(QtWidgets.QMainWindow):
         pg.setConfigOption('background', 'w')
         pg.setConfigOption('foreground', 'k')
 
-        ui_path = resource_filename(__name__, 'gamma_spectroscopy_gui.ui')
+        ui_path = resource_filename('gamma_spectroscopy', 'gamma_spectroscopy_gui.ui')
         layout = uic.loadUi(ui_path, self)
 
         # Menubar
