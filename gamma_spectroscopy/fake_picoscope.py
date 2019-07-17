@@ -125,8 +125,7 @@ class FakePicoScope:
         V_data = []
         for channel in self._channels_enabled:
             if self._channels_enabled[channel] is True:
-                V_data.append(.3 * np.ones(shape=(self._num_captures,
-                                                  self._num_samples)))
+                V_data.append(self._create_fake_events())
             else:
                 V_data.append(None)
         return time_values, V_data
@@ -172,6 +171,8 @@ class FakePicoScope:
         :returns: data
         """
         # save samples and captures for reference
+        self._num_pre_samples = num_pre_samples
+        self._num_post_samples = num_post_samples
         self._num_samples = num_pre_samples + num_post_samples
         self._timebase = timebase
         self._num_captures = num_captures
@@ -211,3 +212,6 @@ class FakePicoScope:
         'FALLING' or 'RISING_OR_FALLING'.
         """
         pass
+
+    def _create_fake_events(self):
+        return np.array(.3 * np.ones(shape=(self._num_captures, self._num_samples)))
