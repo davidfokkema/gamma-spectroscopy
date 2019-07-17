@@ -10,8 +10,8 @@ from pkg_resources import resource_filename
 from PyQt5 import uic, QtWidgets, QtCore
 import pyqtgraph as pg
 
-from .picoscope_5000a import PicoScope5000A, INPUT_RANGES
-from .fake_picoscope import FakePicoScope
+from gamma_spectroscopy.picoscope_5000a import PicoScope5000A, INPUT_RANGES
+from gamma_spectroscopy.fake_picoscope import FakePicoScope
 
 
 def create_callback(signal):
