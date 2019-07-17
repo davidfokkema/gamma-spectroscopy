@@ -123,10 +123,9 @@ class FakePicoScope:
                                                   self._num_samples)
 
         V_data = []
-        for channel, values in zip(self._channels_enabled, data):
+        for channel in self._channels_enabled:
             if self._channels_enabled[channel] is True:
-                V_data.append(self._rescale_adc_to_V(channel,
-                                                     np.array(values)))
+                V_data.append(.3 * np.ones(self._num_samples))
             else:
                 V_data.append(None)
 
