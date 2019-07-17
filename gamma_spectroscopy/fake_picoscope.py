@@ -153,9 +153,9 @@ class FakePicoScope:
         """
         print("get_interval_from_timebase")
         if timebase <= 3:
-            return 2 ** (timebase - 1) / 500e6
+            return 2 ** (timebase - 1) / 500e6 * 1e9
         else:
-            return (timebase - 3) / 62.5e6
+            return (timebase - 3) / 62.5e6 * 1e9
 
     def start_run(self, num_pre_samples, num_post_samples, timebase=4,
                   num_captures=1, callback=None):
