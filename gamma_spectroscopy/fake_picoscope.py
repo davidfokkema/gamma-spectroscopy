@@ -222,11 +222,11 @@ class FakePicoScope:
 
     def _create_fake_event(self):
         interval = self.get_interval_from_timebase(self._timebase)
-        t = interval * np.arange(self._num_samples)
+        t = interval * 1e-9 * np.arange(self._num_samples)
         offset = np.random.randint(1, self._num_samples)
         pulseheight = np.random.uniform(30e-3, 500e-3)
 
-        signal = -pulseheight * np.exp(-5e6 * t)
+        signal = -pulseheight * np.exp(-60e3 * t)
         noise = np.random.normal(size=t.shape, scale=10e-3)
 
         event = noise
