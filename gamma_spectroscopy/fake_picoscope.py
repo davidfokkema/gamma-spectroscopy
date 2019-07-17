@@ -10,7 +10,6 @@ FakePicoScope
 
 import ctypes
 from threading import Event, Timer
-import time
 
 import numpy as np
 import pysnooper
@@ -122,20 +121,15 @@ class FakePicoScope:
         captured data (in Volts).
 
         """
-        print("Get data 1.")
-        time.sleep(2)
-        print("Get data 1.5")
         time_values = self._calculate_time_values(self._timebase,
                                                   self._num_samples)
 
-        print("Get data 2.")
         V_data = []
         for channel in self._channels_enabled:
             if self._channels_enabled[channel] is True:
                 V_data.append(.3 * np.ones(self._num_samples))
             else:
                 V_data.append(None)
-        print("Get data 3.")
         return time_values, V_data
 
     def _calculate_time_values(self, timebase, num_samples):
@@ -151,7 +145,6 @@ class FakePicoScope:
 
         :returns: sampling interval in nanoseconds
         """
-        print("get_interval_from_timebase")
         if timebase <= 3:
             return 2 ** (timebase - 1) / 500e6 * 1e9
         else:
@@ -179,7 +172,6 @@ class FakePicoScope:
 
         :returns: data
         """
-        print("Staring new run.")
         # save samples and captures for reference
         self._num_samples = num_pre_samples + num_post_samples
         self._timebase = timebase
