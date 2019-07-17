@@ -9,6 +9,7 @@ from pkg_resources import resource_filename
 
 from PyQt5 import uic, QtWidgets, QtCore
 import pyqtgraph as pg
+import pysnooper
 
 from .picoscope_5000a import PicoScope5000A, INPUT_RANGES
 from .fake_picoscope import FakePicoScope
@@ -294,6 +295,7 @@ class UserInterface(QtWidgets.QMainWindow):
         self.init_spectrum_plot()
 
     @QtCore.pyqtSlot(dict)
+    @pysnooper.snoop()
     def plot_data(self, data):
         x, A, B = data['x'], data['A'], data['B']
 

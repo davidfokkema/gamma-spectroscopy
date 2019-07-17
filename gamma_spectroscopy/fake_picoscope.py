@@ -12,7 +12,6 @@ import ctypes
 from threading import Event, Timer
 
 import numpy as np
-import pysnooper
 
 from .picoscope_5000a import callback_factory
 
@@ -113,7 +112,6 @@ class FakePicoScope:
     def get_adc_data(self):
         raise NotImplementedError
 
-    @pysnooper.snoop(depth=2)
     def get_data(self):
         """Return all captured data, in physical units.
 
@@ -127,7 +125,8 @@ class FakePicoScope:
         V_data = []
         for channel in self._channels_enabled:
             if self._channels_enabled[channel] is True:
-                V_data.append(.3 * np.ones(self._num_samples))
+                V_data.append(.3 * np.ones(shape=(self._num_captures,
+                                                  self._num_samples)))
             else:
                 V_data.append(None)
         return time_values, V_data
