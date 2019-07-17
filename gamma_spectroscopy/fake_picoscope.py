@@ -181,7 +181,7 @@ class FakePicoScope:
             callback = self._callback
         self.data_is_ready.clear()
 
-        self._timer = Timer(0.5, callback, (ctypes.c_int16(), ctypes.c_int(),
+        self._timer = Timer(0.2, callback, (ctypes.c_int16(), ctypes.c_int(),
                                             ctypes.c_void_p()))
         self._timer.start()
 
@@ -214,4 +214,21 @@ class FakePicoScope:
         pass
 
     def _create_fake_events(self):
-        return np.array(.3 * np.ones(shape=(self._num_captures, self._num_samples)))
+        events = []
+        for _ in range(self._num_captures):
+            event = self._create_fake_event()
+            events.append(event)
+        return np.array(events)
+
+    def _create_fake_event(self):
+        interval = self.get_interval_from_timebase(self._timebase)
+        t = interval * np.arange(self._num_samples)
+        offset = np.random.randint(1, self._num_samples)
+        pulseheight = np.random.uniform(30e-3, 500e-3)
+
+        signal = -pulseheight * np.exp(-5e6 * t)
+        noise = np.random.normal(size=t.shape, scale=10e-3)
+
+        event = noise
+        event[offset:] += signal[:-offset]
+        return event
