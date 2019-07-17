@@ -10,8 +10,10 @@ FakePicoScope
 
 import ctypes
 from threading import Event, Timer
+import time
 
 import numpy as np
+import pysnooper
 
 from .picoscope_5000a import callback_factory
 
@@ -112,6 +114,7 @@ class FakePicoScope:
     def get_adc_data(self):
         raise NotImplementedError
 
+    @pysnooper.snoop()
     def get_data(self):
         """Return all captured data, in physical units.
 
@@ -119,23 +122,29 @@ class FakePicoScope:
         captured data (in Volts).
 
         """
+        print("Get data 1.")
+        time.sleep(2)
+        print("Get data 1.5")
         time_values = self._calculate_time_values(self._timebase,
                                                   self._num_samples)
 
+        print("Get data 2.")
         V_data = []
         for channel in self._channels_enabled:
             if self._channels_enabled[channel] is True:
                 V_data.append(.3 * np.ones(self._num_samples))
             else:
                 V_data.append(None)
-
+        print("Get data 3.")
         return time_values, V_data
 
+    @pysnooper.snoop()
     def _calculate_time_values(self, timebase, num_samples):
         """Calculate time values from timebase and number of samples."""
         interval = self.get_interval_from_timebase(timebase, num_samples)
         return interval * np.arange(num_samples) * 1e-9
 
+    @pysnooper.snoop()
     def get_interval_from_timebase(self, timebase, num_samples=1000):
         """Get sampling interval for given timebase.
 
@@ -144,6 +153,7 @@ class FakePicoScope:
 
         :returns: sampling interval in nanoseconds
         """
+        print("get_interval_from_timebase")
         if timebase <= 3:
             return 2 ** (timebase - 1) / 500e6
         else:
@@ -171,6 +181,7 @@ class FakePicoScope:
 
         :returns: data
         """
+        print("Staring new run.")
         # save samples and captures for reference
         self._num_samples = num_pre_samples + num_post_samples
         self._timebase = timebase

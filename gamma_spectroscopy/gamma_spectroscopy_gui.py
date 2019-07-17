@@ -17,7 +17,9 @@ from .fake_picoscope import FakePicoScope
 def create_callback(signal):
     @ctypes.CFUNCTYPE(None, ctypes.c_int16, ctypes.c_int, ctypes.c_void_p)
     def my_callback(handle, status, parameters):
+        print("Emitting signal")
         signal.emit()
+        print("Signal emitted.")
     return my_callback
 
 
@@ -272,13 +274,16 @@ class UserInterface(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot()
     def fetch_data(self):
+        print("Fetching data.")
         t, [A, B] = self.scope.get_data()
+        print("Got data.")
         if A is not None:
             self.num_events += len(A)
             self.plot_data_signal.emit({'x': t, 'A': A, 'B': B})
         if self._is_running:
             self.start_run_signal.emit()
         self.check_run_time()
+        print("Done fetching data.")
 
     def check_run_time(self):
         run_time = time.time() - self._t_start_run
