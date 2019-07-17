@@ -114,7 +114,7 @@ class FakePicoScope:
     def get_adc_data(self):
         raise NotImplementedError
 
-    @pysnooper.snoop()
+    @pysnooper.snoop(depth=2)
     def get_data(self):
         """Return all captured data, in physical units.
 
@@ -138,13 +138,11 @@ class FakePicoScope:
         print("Get data 3.")
         return time_values, V_data
 
-    @pysnooper.snoop()
     def _calculate_time_values(self, timebase, num_samples):
         """Calculate time values from timebase and number of samples."""
         interval = self.get_interval_from_timebase(timebase, num_samples)
         return interval * np.arange(num_samples) * 1e-9
 
-    @pysnooper.snoop()
     def get_interval_from_timebase(self, timebase, num_samples=1000):
         """Get sampling interval for given timebase.
 
