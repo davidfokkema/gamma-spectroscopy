@@ -241,12 +241,19 @@ class FakePicoScope:
         if self._is_trigger_enabled:
             offset = self._num_pre_samples
         else:
-            offset = np.random.randint(1, self._num_samples)
+            if self._num_samples > 1:
+                offset = np.random.randint(0, self._num_samples - 1)
+            else:
+                offset = 0
 
         pulseheight = np.random.normal(300e-3, scale=50e-3)
         signal = -pulseheight * np.exp(-60e3 * t)
         noise = np.random.normal(size=t.shape, scale=3e-3)
 
         event = noise
-        event[offset:] += signal[:-offset]
+        if offset == 0:
+            event += signal
+        else:
+            event[offset:] += signal[:-offset]
+
         return event
