@@ -183,10 +183,10 @@ class FakePicoScope:
         self.data_is_ready.clear()
 
         if self._is_trigger_enabled:
-            wait_time = np.random.exponential(scale=1 / 10.,
+            wait_time = np.random.exponential(scale=1 / 100.,
                                               size=num_captures).sum()
         else:
-            wait_time = .05 * num_captures
+            wait_time = .001 * num_captures
 
         self._timer = Timer(wait_time, callback,
                             (ctypes.c_int16(), ctypes.c_int(),
