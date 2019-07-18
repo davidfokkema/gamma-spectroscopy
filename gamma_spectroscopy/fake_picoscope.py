@@ -10,6 +10,7 @@ FakePicoScope
 
 import ctypes
 from threading import Event, Timer
+import time
 
 import numpy as np
 
@@ -171,6 +172,9 @@ class FakePicoScope:
 
         :returns: data
         """
+        if self._timer is not None and self._timer.is_alive():
+            raise RuntimeError("Data capture already running")
+
         # save samples and captures for reference
         self._num_pre_samples = num_pre_samples
         self._num_post_samples = num_post_samples

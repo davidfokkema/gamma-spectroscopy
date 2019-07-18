@@ -214,7 +214,6 @@ class UserInterface(QtWidgets.QMainWindow):
         self._is_baseline_correction_enabled = state
 
     def _set_channel(self):
-        self.scope.stop()
         self._offset = np.interp(self._offset_level, [-100, 100],
                                  [-self._range, self._range])
         self.scope.set_channel('A', 'DC', self._range,
@@ -226,7 +225,6 @@ class UserInterface(QtWidgets.QMainWindow):
 
     def set_trigger(self):
         edge = 'RISING' if self._pulse_polarity == 'Positive' else 'FALLING'
-        self.scope.stop()
         # get last letter of trigger channel box ('Channel A' -> 'A')
         channel = self.trigger_channel_box.currentText()[-1]
         self._trigger_channel = channel
