@@ -62,6 +62,7 @@ class FakePicoScope:
         self.data_is_ready = Event()
         self._callback = callback_factory(self.data_is_ready)
         self._timer = None
+        self._is_trigger_enabled = False
 
     def open(self, serial=None, resolution_bits=12):
         """Open the device.
@@ -181,8 +182,15 @@ class FakePicoScope:
             callback = self._callback
         self.data_is_ready.clear()
 
-        self._timer = Timer(0.2, callback, (ctypes.c_int16(), ctypes.c_int(),
-                                            ctypes.c_void_p()))
+        if self._is_trigger_enabled:
+            wait_time = np.random.exponential(scale=1 / 10.,
+                                              size=num_captures).sum()
+        else:
+            wait_time = .05 * num_captures
+
+        self._timer = Timer(wait_time, callback,
+                            (ctypes.c_int16(), ctypes.c_int(),
+                             ctypes.c_void_p()))
         self._timer.start()
 
     def wait_for_data(self):
@@ -211,7 +219,9 @@ class FakePicoScope:
         The direction parameter can take values of 'ABOVE', 'BELOW', 'RISING',
         'FALLING' or 'RISING_OR_FALLING'.
         """
-        pass
+        self._is_trigger_enabled = is_enabled
+        self._trigger_threshold = threshold
+        self._trigger_direction = direction
 
     def _create_fake_events(self):
         events = []
