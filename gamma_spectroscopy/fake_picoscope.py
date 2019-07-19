@@ -95,7 +95,6 @@ class FakePicoScope:
         """
         self._range = range_value
         self._offset = offset
-        print(range_value, offset)
 
     def measure(self, num_pre_samples, num_post_samples, timebase=4,
                 num_captures=1):
