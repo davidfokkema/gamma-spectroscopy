@@ -63,8 +63,6 @@ class PicoScope5000A:
         close the device
     set_channel()
         Set up input channels
-    get_interval_from_timebase()
-        Get sampling interval for given timebase
     measure()
         Start a data collection run and return the data
     measure_adc_values()

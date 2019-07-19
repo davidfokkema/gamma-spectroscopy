@@ -10,7 +10,8 @@ from pkg_resources import resource_filename
 from PyQt5 import uic, QtWidgets, QtCore
 import pyqtgraph as pg
 
-from .picoscope_5000a import PicoScope5000A, INPUT_RANGES
+from gamma_spectroscopy.picoscope_5000a import PicoScope5000A, INPUT_RANGES
+from gamma_spectroscopy.fake_picoscope import FakePicoScope
 
 
 def create_callback(signal):
@@ -60,7 +61,8 @@ class UserInterface(QtWidgets.QMainWindow):
 
         self._pulseheights = {'A': [], 'B': []}
 
-        self.scope = PicoScope5000A()
+        # self.scope = PicoScope5000A()
+        self.scope = FakePicoScope()
 
         self.init_ui()
 
@@ -72,7 +74,7 @@ class UserInterface(QtWidgets.QMainWindow):
         pg.setConfigOption('background', 'w')
         pg.setConfigOption('foreground', 'k')
 
-        ui_path = resource_filename(__name__, 'gamma_spectroscopy_gui.ui')
+        ui_path = resource_filename('gamma_spectroscopy', 'gamma_spectroscopy_gui.ui')
         layout = uic.loadUi(ui_path, self)
 
         # Menubar
@@ -174,13 +176,13 @@ class UserInterface(QtWidgets.QMainWindow):
     def set_range(self, range_idx):
         ranges = list(INPUT_RANGES.keys())
         self._range = ranges[range_idx]
-        self._set_channel()
+        self.set_channel()
         self.set_trigger()
 
     @QtCore.pyqtSlot(float)
     def set_offset(self, offset_level):
         self._offset_level = offset_level
-        self._set_channel()
+        self.set_channel()
         self.set_trigger()
 
     @QtCore.pyqtSlot(float)
@@ -207,13 +209,14 @@ class UserInterface(QtWidgets.QMainWindow):
     def set_polarity(self, idx):
         self._pulse_polarity = self.POLARITY[idx]
         self._polarity_sign = self.POLARITY_SIGN[idx]
+        self.set_channel()
         self.set_trigger()
 
     @QtCore.pyqtSlot(int)
     def set_baseline_correction_state(self, state):
         self._is_baseline_correction_enabled = state
 
-    def _set_channel(self):
+    def set_channel(self):
         self._offset = np.interp(self._offset_level, [-100, 100],
                                  [-self._range, self._range])
         self.scope.set_channel('A', 'DC', self._range,
