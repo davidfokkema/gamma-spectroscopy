@@ -93,7 +93,9 @@ class FakePicoScope:
         5 V or 10, 20, 50 V, but is given in volts. For example, a range of
         20 mV is given as 0.02.
         """
-        pass
+        self._range = range_value
+        self._offset = offset
+        print(range_value, offset)
 
     def measure(self, num_pre_samples, num_post_samples, timebase=4,
                 num_captures=1):
@@ -173,7 +175,8 @@ class FakePicoScope:
         :returns: data
         """
         if self._timer is not None and self._timer.is_alive():
-            raise RuntimeError("Data capture already running")
+            # Data capture already running
+            return
 
         # save samples and captures for reference
         self._num_pre_samples = num_pre_samples
@@ -255,13 +258,18 @@ class FakePicoScope:
                 pulseheight = 0.
 
         signal = -pulseheight * np.exp(-60e3 * t)
-        noise = np.random.normal(size=t.shape, scale=3e-3)
+        baseline = np.random.normal(scale=10e-3, loc=5e-3)
+        noise = np.random.normal(size=t.shape, scale=3e-3, loc=baseline)
 
         event = noise
         if offset == 0:
             event += signal
         else:
             event[offset:] += signal[:-offset]
+
+        amin = -self._range - self._offset
+        amax = self._range - self._offset
+        event = event.clip(amin, amax)
 
         return event
 
