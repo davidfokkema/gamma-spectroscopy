@@ -377,6 +377,9 @@ class UserInterface(QtWidgets.QMainWindow):
 
         file_path, _ = QtWidgets.QFileDialog.getSaveFileName(
             self, caption="Save spectrum", directory="spectrum.csv")
+        if not file_path:
+            # Cancel was pressed, no file was selected
+            return
 
         x, _, channel_counts = self.make_spectrum()
         channel_counts = [u if u is not None else [0] * len(x) for
