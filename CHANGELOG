@@ -1,3 +1,9 @@
+Changed in version 0.9.3:
+  * Fixed #1, #2, #3
+  * Added fake hardware as an option with --fake (for easy testing and
+    development)
+
+
 Changed in version 0.9.2:
   * Added upper trigger threshold (in software)
 
