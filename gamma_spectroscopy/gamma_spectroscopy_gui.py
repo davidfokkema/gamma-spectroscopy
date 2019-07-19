@@ -193,6 +193,7 @@ class UserInterface(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(float)
     def set_upper_threshold(self, threshold):
         self._upper_threshold = threshold
+        self.scope.stop()
 
     @QtCore.pyqtSlot(int)
     def set_trigger_state(self, state):
@@ -202,6 +203,7 @@ class UserInterface(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(int)
     def set_upper_trigger_state(self, state):
         self._is_upper_threshold_enabled = state
+        self.scope.stop()
 
     @QtCore.pyqtSlot(int)
     def set_polarity(self, idx):
@@ -222,6 +224,7 @@ class UserInterface(QtWidgets.QMainWindow):
                                self._polarity_sign * self._offset)
         self.event_plot.setYRange(-self._range - self._offset,
                                   self._range - self._offset)
+        self.scope.stop()
 
     def set_trigger(self):
         edge = 'RISING' if self._pulse_polarity == 'Positive' else 'FALLING'
@@ -230,6 +233,7 @@ class UserInterface(QtWidgets.QMainWindow):
         self._trigger_channel = channel
         self.scope.set_trigger(channel, self._polarity_sign * self._threshold,
                                edge, is_enabled=self._is_trigger_enabled)
+        self.scope.stop()
 
     @QtCore.pyqtSlot(int)
     def set_timebase(self, timebase):
@@ -256,6 +260,8 @@ class UserInterface(QtWidgets.QMainWindow):
         self._pre_samples = pre_samples
         self._post_samples = post_samples
         self._num_samples = num_samples
+
+        self.scope.stop()
 
     def _calculate_num_samples(self):
         dt = self.scope.get_interval_from_timebase(self._timebase)
