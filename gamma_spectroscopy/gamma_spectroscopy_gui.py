@@ -176,13 +176,13 @@ class UserInterface(QtWidgets.QMainWindow):
     def set_range(self, range_idx):
         ranges = list(INPUT_RANGES.keys())
         self._range = ranges[range_idx]
-        self._set_channel()
+        self.set_channel()
         self.set_trigger()
 
     @QtCore.pyqtSlot(float)
     def set_offset(self, offset_level):
         self._offset_level = offset_level
-        self._set_channel()
+        self.set_channel()
         self.set_trigger()
 
     @QtCore.pyqtSlot(float)
@@ -209,13 +209,14 @@ class UserInterface(QtWidgets.QMainWindow):
     def set_polarity(self, idx):
         self._pulse_polarity = self.POLARITY[idx]
         self._polarity_sign = self.POLARITY_SIGN[idx]
+        self.set_channel()
         self.set_trigger()
 
     @QtCore.pyqtSlot(int)
     def set_baseline_correction_state(self, state):
         self._is_baseline_correction_enabled = state
 
-    def _set_channel(self):
+    def set_channel(self):
         self._offset = np.interp(self._offset_level, [-100, 100],
                                  [-self._range, self._range])
         self.scope.set_channel('A', 'DC', self._range,
