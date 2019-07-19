@@ -358,6 +358,8 @@ class UserInterface(QtWidgets.QMainWindow):
         xrange = 2 * self._range * 1e3
         xmin = .01 * self.lld_box.value() * xrange
         xmax = .01 * self.uld_box.value() * xrange
+        if xmax < xmin:
+            xmax = xmin
         bins = np.linspace(xmin, xmax, self.num_bins_box.value())
         x = (bins[:-1] + bins[1:]) / 2
         channel_counts = []
