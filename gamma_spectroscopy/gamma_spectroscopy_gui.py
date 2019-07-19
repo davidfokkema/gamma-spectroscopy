@@ -1,3 +1,4 @@
+import argparse
 import csv
 import ctypes
 from math import floor
@@ -56,13 +57,15 @@ class UserInterface(QtWidgets.QMainWindow):
 
     _t_start_run = 0
 
-    def __init__(self):
+    def __init__(self, use_fake=False):
         super().__init__()
 
         self._pulseheights = {'A': [], 'B': []}
 
-        # self.scope = PicoScope5000A()
-        self.scope = FakePicoScope()
+        if use_fake:
+            self.scope = FakePicoScope()
+        else:
+            self.scope = PicoScope5000A()
 
         self.init_ui()
 
@@ -395,8 +398,13 @@ class UserInterface(QtWidgets.QMainWindow):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--fake', action='store_true',
+                        help="Use fake hardware")
+    args = parser.parse_args()
+
     qtapp = QtWidgets.QApplication(sys.argv)
-    ui = UserInterface()
+    ui = UserInterface(use_fake=args.fake)
     sys.exit(qtapp.exec_())
 
 
