@@ -61,7 +61,7 @@ class FakePicoScope:
         self._input_adc_ranges = {}
         self._buffers = {}
         self.data_is_ready = Event()
-        self._callback = callback_factory(self.data_is_ready)
+        self._default_callback = callback_factory(self.data_is_ready)
         self._timer = None
         self._is_trigger_enabled = False
 
@@ -183,8 +183,9 @@ class FakePicoScope:
         self._num_captures = num_captures
 
         if callback is None:
-            callback = self._callback
+            callback = self._default_callback
         self.data_is_ready.clear()
+        self._callback = callback
 
         if self._is_trigger_enabled:
             wait_time = np.random.exponential(scale=1 / 100.,
@@ -205,6 +206,8 @@ class FakePicoScope:
         """Stop data capture."""
         if self._timer is not None:
             self._timer.cancel()
+            self._callback(ctypes.c_int16(), ctypes.c_int(), ctypes.c_void_p())
+            pass
 
     def set_trigger(self, channel_name, threshold=0., direction='RISING',
                     is_enabled=True, delay=0, auto_trigger=0):
