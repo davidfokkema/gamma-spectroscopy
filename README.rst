@@ -21,7 +21,7 @@ We're currently experimenting with replacing all NIM modules with a single PicoS
 Installation
 ------------
 
-In this section we will cover the installation of the gamma-spectroscopy package as well as the prerequisites (see below).
+In this section we will cover the installation of the gamma-spectroscopy package as well as the prerequisites (see below). On Windows, first make sure that the Anaconda distribution is installed and run all command-line commands from the Anaconda Prompt application.
 
 Prerequisites
 ^^^^^^^^^^^^^
@@ -63,7 +63,7 @@ or, alternatively, you can install the latest development version from GitHub:
 Running the application
 -----------------------
 
-You can start the application GUI directly from the command-line:
+You can start the application GUI directly from the command-line (On Windows, first start the Anaconda Prompt application to get to the command-line):
 
 .. code-block:: console
 
