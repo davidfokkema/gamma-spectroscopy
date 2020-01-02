@@ -56,6 +56,7 @@ class UserInterface(QtWidgets.QMainWindow):
     _num_samples = 0
 
     _t_start_run = 0
+    _t_prev_run_time = 0
 
     def __init__(self, use_fake=False):
         super().__init__()
@@ -125,7 +126,7 @@ class UserInterface(QtWidgets.QMainWindow):
         self.uld_box.valueChanged.connect(self.update_spectrum_plot)
         self.num_bins_box.valueChanged.connect(self.update_spectrum_plot)
 
-        self.clear_spectrum_button.clicked.connect(self.clear_spectrum)
+        self.clear_run_button.clicked.connect(self.clear_run)
         self.single_button.clicked.connect(self.start_scope_run)
         self.run_stop_button.clicked.connect(self.toggle_run_stop)
 
@@ -158,9 +159,7 @@ class UserInterface(QtWidgets.QMainWindow):
 
     def start_run(self):
         self._is_running = True
-        self.clear_spectrum()
         self._t_start_run = time.time()
-        self.num_events = 0
         self._update_run_time_label()
         self.run_timer.start()
         self.start_run_signal.emit()
@@ -172,6 +171,8 @@ class UserInterface(QtWidgets.QMainWindow):
         self._update_run_time_label()
         self.scope.stop()
         self.run_timer.stop()
+        run_time = time.time() - self._t_start_run
+        self._t_prev_run_time += run_time
         self.run_stop_button.setText("Run")
         self.single_button.setDisabled(False)
 
@@ -282,9 +283,13 @@ class UserInterface(QtWidgets.QMainWindow):
         return pre_samples, post_samples
 
     def _update_run_time_label(self):
-        run_time = round(time.time() - self._t_start_run)
+        run_time = round(self._t_prev_run_time
+                         + time.time() - self._t_start_run)
         self.run_time_label.setText(f"{run_time} s")
         self.num_events_label.setText(f"({self.num_events} events)")
+        # Force repaint for fast response on user input
+        self.run_time_label.repaint()
+        self.num_events_label.repaint()
 
     @QtCore.pyqtSlot()
     def fetch_data(self):
@@ -294,15 +299,17 @@ class UserInterface(QtWidgets.QMainWindow):
             self.plot_data_signal.emit({'x': t, 'A': A, 'B': B})
         if self._is_running:
             self.start_run_signal.emit()
-        self.check_run_time()
-
-    def check_run_time(self):
-        run_time = time.time() - self._t_start_run
-        if run_time >= self.run_duration_box.value():
+        if self.is_run_time_completed():
             self.stop_run()
 
+    def is_run_time_completed(self):
+        run_time = time.time() - self._t_start_run
+        all_run_time = self._t_prev_run_time + run_time
+        return all_run_time >= self.run_duration_box.value()
+
     @QtCore.pyqtSlot()
-    def clear_spectrum(self):
+    def clear_run(self):
+        self._t_prev_run_time = 0
         self._t_start_run = time.time()
         self.num_events = 0
         self._pulseheights = {'A': [], 'B': []}
