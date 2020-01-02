@@ -76,6 +76,7 @@ class UserInterface(QtWidgets.QMainWindow):
     def init_ui(self):
         pg.setConfigOption('background', 'w')
         pg.setConfigOption('foreground', 'k')
+        pg.setConfigOption('antialias', True)
 
         ui_path = resource_filename('gamma_spectroscopy', 'gamma_spectroscopy_gui.ui')
         layout = uic.loadUi(ui_path, self)
@@ -339,9 +340,9 @@ class UserInterface(QtWidgets.QMainWindow):
     def update_event_plot(self, x, A, B):
         self.event_plot.clear()
         if self.ch_A_enabled_box.isChecked():
-            self.event_plot.plot(x * 1e6, A[-1], pen={'color': 'k', 'width': 4.})
+            self.event_plot.plot(x * 1e6, A[-1], pen={'color': 'k', 'width': 2.})
         if self.ch_B_enabled_box.isChecked():
-            self.event_plot.plot(x * 1e6, B[-1], pen={'color': 'b', 'width': 4.})
+            self.event_plot.plot(x * 1e6, B[-1], pen={'color': 'b', 'width': 2.})
 
     def init_spectrum_plot(self):
         self.spectrum_plot.clear()
@@ -354,7 +355,7 @@ class UserInterface(QtWidgets.QMainWindow):
         for counts, color in zip(channel_counts, ['k', 'b']):
             if counts is not None:
                 self.spectrum_plot.plot(x, counts, pen={'color': color,
-                                                        'width': 4.})
+                                                        'width': 2.})
         self.spectrum_plot.setXRange(0, 2 * self._range * 1e3)
 
     def make_spectrum(self):
