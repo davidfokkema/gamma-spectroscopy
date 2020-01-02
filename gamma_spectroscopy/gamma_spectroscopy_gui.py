@@ -337,8 +337,6 @@ class UserInterface(QtWidgets.QMainWindow):
         self.event_plot.clear()
         self.event_plot.setLabels(title='Scintillator event',
                                   bottom='Time [us]', left='Signal [V]')
-        self.event_plot.setYRange(-self._range - self._offset,
-                                  self._range - self._offset)
 
     def update_event_plot(self, x, A, B):
         self.event_plot.clear()
@@ -361,7 +359,6 @@ class UserInterface(QtWidgets.QMainWindow):
             if counts is not None:
                 self.spectrum_plot.plot(x, counts, pen={'color': color,
                                                         'width': 2.})
-        self.spectrum_plot.setXRange(0, 2 * self._range * 1e3)
 
     def make_spectrum(self):
         xrange = 2 * self._range * 1e3
