@@ -410,7 +410,7 @@ def main():
     args = parser.parse_args()
 
     qtapp = QtWidgets.QApplication(sys.argv)
-    UserInterface(use_fake=args.fake)
+    ui = UserInterface(use_fake=args.fake)
     sys.exit(qtapp.exec_())
 
 
