@@ -78,7 +78,8 @@ class UserInterface(QtWidgets.QMainWindow):
         pg.setConfigOption('foreground', 'k')
         pg.setConfigOption('antialias', True)
 
-        ui_path = resource_filename('gamma_spectroscopy', 'gamma_spectroscopy_gui.ui')
+        ui_path = resource_filename('gamma_spectroscopy',
+                                    'gamma_spectroscopy_gui.ui')
         layout = uic.loadUi(ui_path, self)
 
         # Menubar
@@ -92,7 +93,6 @@ class UserInterface(QtWidgets.QMainWindow):
         file_menu.addAction(export_spectrum_action)
 
         layout.setMenuBar(menubar)
-
 
         self.start_run_signal.connect(self.start_scope_run)
 
@@ -111,12 +111,15 @@ class UserInterface(QtWidgets.QMainWindow):
         self.threshold_box.valueChanged.connect(self.set_threshold)
         self.upper_threshold_box.valueChanged.connect(self.set_upper_threshold)
         self.trigger_box.stateChanged.connect(self.set_trigger_state)
-        self.upper_trigger_box.stateChanged.connect(self.set_upper_trigger_state)
+        self.upper_trigger_box.stateChanged.connect(
+            self.set_upper_trigger_state)
         self.trigger_channel_box.currentTextChanged.connect(self.set_trigger)
         self.timebase_box.valueChanged.connect(self.set_timebase)
         self.pre_trigger_box.valueChanged.connect(self.set_pre_trigger_window)
-        self.post_trigger_box.valueChanged.connect(self.set_post_trigger_window)
-        self.baseline_correction_box.stateChanged.connect(self.set_baseline_correction_state)
+        self.post_trigger_box.valueChanged.connect(
+            self.set_post_trigger_window)
+        self.baseline_correction_box.stateChanged.connect(
+            self.set_baseline_correction_state)
 
         self.lld_box.valueChanged.connect(self.update_spectrum_plot)
         self.uld_box.valueChanged.connect(self.update_spectrum_plot)
@@ -150,23 +153,23 @@ class UserInterface(QtWidgets.QMainWindow):
             self.stop_run()
 
     def start_run(self):
-            self._is_running = True
-            self.clear_spectrum()
-            self._t_start_run = time.time()
-            self.num_events = 0
-            self._update_run_time_label()
-            self.run_timer.start()
-            self.start_run_signal.emit()
-            self.run_stop_button.setText("Stop")
-            self.single_button.setDisabled(True)
+        self._is_running = True
+        self.clear_spectrum()
+        self._t_start_run = time.time()
+        self.num_events = 0
+        self._update_run_time_label()
+        self.run_timer.start()
+        self.start_run_signal.emit()
+        self.run_stop_button.setText("Stop")
+        self.single_button.setDisabled(True)
 
     def stop_run(self):
-            self._is_running = False
-            self._update_run_time_label()
-            self.scope.stop()
-            self.run_timer.stop()
-            self.run_stop_button.setText("Run")
-            self.single_button.setDisabled(False)
+        self._is_running = False
+        self._update_run_time_label()
+        self.scope.stop()
+        self.run_timer.stop()
+        self.run_stop_button.setText("Run")
+        self.single_button.setDisabled(False)
 
     @QtCore.pyqtSlot()
     def start_scope_run(self):
@@ -340,9 +343,11 @@ class UserInterface(QtWidgets.QMainWindow):
     def update_event_plot(self, x, A, B):
         self.event_plot.clear()
         if self.ch_A_enabled_box.isChecked():
-            self.event_plot.plot(x * 1e6, A[-1], pen={'color': 'k', 'width': 2.})
+            self.event_plot.plot(x * 1e6, A[-1],
+                                 pen={'color': 'k', 'width': 2.})
         if self.ch_B_enabled_box.isChecked():
-            self.event_plot.plot(x * 1e6, B[-1], pen={'color': 'b', 'width': 2.})
+            self.event_plot.plot(x * 1e6, B[-1],
+                                 pen={'color': 'b', 'width': 2.})
 
     def init_spectrum_plot(self):
         self.spectrum_plot.clear()
@@ -405,7 +410,7 @@ def main():
     args = parser.parse_args()
 
     qtapp = QtWidgets.QApplication(sys.argv)
-    ui = UserInterface(use_fake=args.fake)
+    UserInterface(use_fake=args.fake)
     sys.exit(qtapp.exec_())
 
 
