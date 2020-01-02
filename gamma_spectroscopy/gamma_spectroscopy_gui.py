@@ -129,6 +129,10 @@ class UserInterface(QtWidgets.QMainWindow):
         self.single_button.clicked.connect(self.start_scope_run)
         self.run_stop_button.clicked.connect(self.toggle_run_stop)
 
+        self.reset_event_axes_button.clicked.connect(self.reset_event_axes)
+        self.reset_spectrum_axes_button.clicked.connect(
+            self.reset_spectrum_axes)
+
         self.run_timer.timeout.connect(self._update_run_time_label)
 
         self.init_event_plot()
@@ -338,6 +342,12 @@ class UserInterface(QtWidgets.QMainWindow):
         self.event_plot.setLabels(title='Scintillator event',
                                   bottom='Time [us]', left='Signal [V]')
 
+    @QtCore.pyqtSlot()
+    def reset_event_axes(self):
+        self.event_plot.enableAutoRange(axis=pg.ViewBox.XAxis)
+        self.event_plot.setYRange(-self._range - self._offset,
+                                  self._range - self._offset)
+
     def update_event_plot(self, x, A, B):
         self.event_plot.clear()
         if self.ch_A_enabled_box.isChecked():
@@ -351,6 +361,10 @@ class UserInterface(QtWidgets.QMainWindow):
         self.spectrum_plot.clear()
         self.spectrum_plot.setLabels(title='Spectrum',
                                      bottom='Pulseheight [mV]', left='Counts')
+
+    @QtCore.pyqtSlot()
+    def reset_spectrum_axes(self):
+        self.spectrum_plot.enableAutoRange()
 
     def update_spectrum_plot(self):
         self.spectrum_plot.clear()
