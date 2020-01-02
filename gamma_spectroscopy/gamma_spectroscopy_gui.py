@@ -341,7 +341,7 @@ class UserInterface(QtWidgets.QMainWindow):
         for channel, values in zip(['A', 'B'], pulseheights):
             self._pulseheights[channel].extend(values)
 
-        self.update_event_plot(x, A, B)
+        self.update_event_plot(x, A[-1], B[-1], pulseheights[:, -1])
         self.update_spectrum_plot()
 
     def init_event_plot(self):
@@ -355,14 +355,41 @@ class UserInterface(QtWidgets.QMainWindow):
         self.event_plot.setYRange(-self._range - self._offset,
                                   self._range - self._offset)
 
-    def update_event_plot(self, x, A, B):
+    def update_event_plot(self, x, A, B, pulseheights):
+        phA, phB = pulseheights
+
         self.event_plot.clear()
         if self.ch_A_enabled_box.isChecked():
-            self.event_plot.plot(x * 1e6, A[-1],
+            self.event_plot.plot(x * 1e6, A,
                                  pen={'color': 'k', 'width': 2.})
+            self.event_plot.addItem(
+                pg.InfiniteLine(pos=phA / 1e3, angle=0,
+                                pen={'color': (255, 0, 255, 63), 'width': 2.}))
         if self.ch_B_enabled_box.isChecked():
-            self.event_plot.plot(x * 1e6, B[-1],
+            self.event_plot.plot(x * 1e6, B,
                                  pen={'color': 'b', 'width': 2.})
+            self.event_plot.addItem(
+                pg.InfiniteLine(pos=phB / 1e3, angle=0,
+                                pen={'color': (255, 0, 255, 63), 'width': 2.}))
+
+        # mark trigger instant
+        try:
+            # right after updating settings, pre_samples may exceed old event
+            self.event_plot.addItem(
+                pg.InfiniteLine(pos=x[self._pre_samples] * 1e6, angle=90,
+                                pen={'color': (0, 255, 0, 63), 'width': 2.}))
+        except IndexError:
+            pass
+
+        # mark trigger threshold
+        self.event_plot.addItem(
+            pg.InfiniteLine(pos=self._threshold, angle=0,
+                            pen={'color': (0, 0, 255, 63), 'width': 2.}))
+        # mark upper trigger threshold
+        if self._is_upper_threshold_enabled:
+            self.event_plot.addItem(
+                pg.InfiniteLine(pos=self._upper_threshold, angle=0,
+                                pen={'color': (0, 0, 255, 63), 'width': 2.}))
 
     def init_spectrum_plot(self):
         self.spectrum_plot.clear()
