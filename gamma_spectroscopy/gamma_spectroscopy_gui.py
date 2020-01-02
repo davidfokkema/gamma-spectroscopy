@@ -308,8 +308,8 @@ class UserInterface(QtWidgets.QMainWindow):
         pulseheights = []
         for data in A, B:
             data *= self._polarity_sign
-            if self._is_baseline_correction_enabled:
-                num_samples = int(self._pre_samples * .8)
+            num_samples = int(self._pre_samples * .8)
+            if self._is_baseline_correction_enabled and num_samples > 0:
                 correction = data[:, :num_samples].mean(axis=1)
             else:
                 correction = 0
