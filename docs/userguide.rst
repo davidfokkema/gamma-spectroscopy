@@ -16,12 +16,12 @@ Using the software
 .. figure:: images/screenshot-pmt-pulse.png
    :alt: screenshot showing a photomultiplier pulse
 
-   Screenshot of the GUI showing a plot of a gamma detection from a nuclear source (sodium-22).
+   Screenshot of the GUI showing a plot of a gamma detection from a nuclear source (sodium-22). The green guides show the instant of triggering (vertically) as well as the trigger level (horizontally). The purple guides show the measured pulse height and the blue guide shows the measured baseline.
 
 .. figure:: images/screenshot-spectrum.png
    :alt: screenshot showing a spectrum plot
 
-   Screenshot of the GUI showing a plot of the gamma spectrum of a nuclear source (sodium-22, black line). Another detector at the opposite side of the source picks up coincident annihilation radiation gammas.
+   Screenshot of the GUI showing a plot of the gamma spectrum of a nuclear source (sodium-22, black line). Another detector at the opposite side of the source picks up coincident annihilation radiation gammas. The green guide on the left shows the trigger level and the purple guide shows the minimum pulse height which can be reliably detected (due to baseline shifts). On the right, the red line shows the maximum pulse height which can be detected due to clipping at the upper range of the PicoScope. If you want to adjust the clipping level, change range and offset values accordingly.
 
 
 Taking data
@@ -88,3 +88,9 @@ Lower level discriminator / Upper level discriminator
 
 Histogram bins
    The number of bins in the histogram. This value can be adjusted during and after taking data, without loss of the original pulse height values.
+
+
+Exporting data
+^^^^^^^^^^^^^^
+
+The spectrum shown onscreen can be exported using *File -> Export spectrum*.
