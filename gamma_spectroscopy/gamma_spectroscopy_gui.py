@@ -15,6 +15,14 @@ from gamma_spectroscopy.picoscope_5000a import PicoScope5000A, INPUT_RANGES
 from gamma_spectroscopy.fake_picoscope import FakePicoScope
 
 
+GUIDE_COLORS = {
+    'red': (255, 0, 0, 63),
+    'green': (0, 255, 0, 63),
+    'blue': (0, 0, 255, 63),
+    'purple': (255, 0, 255, 63),
+}
+
+
 def create_callback(signal):
     @ctypes.CFUNCTYPE(None, ctypes.c_int16, ctypes.c_int, ctypes.c_void_p)
     def my_callback(handle, status, parameters):
@@ -320,18 +328,21 @@ class UserInterface(QtWidgets.QMainWindow):
     def plot_data(self, data):
         x, A, B = data['x'], data['A'], data['B']
 
-        pulseheights = []
+        baselines, pulseheights = [], []
         for data in A, B:
             data *= self._polarity_sign
             num_samples = int(self._pre_samples * .8)
             if self._is_baseline_correction_enabled and num_samples > 0:
-                correction = data[:, :num_samples].mean(axis=1)
+                bl = data[:, :num_samples].mean(axis=1)
             else:
-                correction = 0
-            ph = (data.max(axis=1) - correction) * 1e3
+                bl = 0
+            ph = (data.max(axis=1) - bl) * 1e3
+            baselines.append(bl)
             pulseheights.append(ph)
 
+        baselines = np.array(baselines)
         pulseheights = np.array(pulseheights)
+
         if self._is_upper_threshold_enabled:
             channel_idx = ['A', 'B'].index(self._trigger_channel)
             pulseheights = pulseheights.compress(
@@ -341,7 +352,8 @@ class UserInterface(QtWidgets.QMainWindow):
         for channel, values in zip(['A', 'B'], pulseheights):
             self._pulseheights[channel].extend(values)
 
-        self.update_event_plot(x, A[-1], B[-1], pulseheights[:, -1])
+        self.update_event_plot(x, A[-1], B[-1], pulseheights[:, -1],
+                               baselines[:, -1])
         self.update_spectrum_plot()
 
     def init_event_plot(self):
@@ -355,41 +367,52 @@ class UserInterface(QtWidgets.QMainWindow):
         self.event_plot.setYRange(-self._range - self._offset,
                                   self._range - self._offset)
 
-    def update_event_plot(self, x, A, B, pulseheights):
-        phA, phB = pulseheights
-
+    def update_event_plot(self, x, A, B, pulseheights, baselines):
         self.event_plot.clear()
         if self.ch_A_enabled_box.isChecked():
             self.event_plot.plot(x * 1e6, A,
                                  pen={'color': 'k', 'width': 2.})
-            self.event_plot.addItem(
-                pg.InfiniteLine(pos=phA / 1e3, angle=0,
-                                pen={'color': (255, 0, 255, 63), 'width': 2.}))
         if self.ch_B_enabled_box.isChecked():
             self.event_plot.plot(x * 1e6, B,
                                  pen={'color': 'b', 'width': 2.})
-            self.event_plot.addItem(
-                pg.InfiniteLine(pos=phB / 1e3, angle=0,
-                                pen={'color': (255, 0, 255, 63), 'width': 2.}))
+
+        self.draw_event_plot_guides(x, baselines, pulseheights)
+
+    def draw_event_plot_guides(self, x, baselines, pulseheights):
+        phA, phB = pulseheights
+        blA, blB = baselines
+        plot = self.event_plot
+
+        # mark baselines and pulseheights
+        if self.ch_A_enabled_box.isChecked():
+            self.draw_guide(plot, blA, 'blue')
+            self.draw_guide(plot, phA / 1e3, 'purple')
+        if self.ch_B_enabled_box.isChecked():
+            self.draw_guide(plot, blB, 'blue')
+            self.draw_guide(plot, phB / 1e3, 'purple')
 
         # mark trigger instant
         try:
             # right after updating settings, pre_samples may exceed old event
-            self.event_plot.addItem(
-                pg.InfiniteLine(pos=x[self._pre_samples] * 1e6, angle=90,
-                                pen={'color': (0, 255, 0, 63), 'width': 2.}))
+            self.draw_guide(plot, x[self._pre_samples] * 1e6, 'green',
+                            'vertical')
         except IndexError:
             pass
 
-        # mark trigger threshold
-        self.event_plot.addItem(
-            pg.InfiniteLine(pos=self._threshold, angle=0,
-                            pen={'color': (0, 0, 255, 63), 'width': 2.}))
-        # mark upper trigger threshold
+        # mark trigger thresholds
+        self.draw_guide(plot, self._threshold, 'green')
         if self._is_upper_threshold_enabled:
-            self.event_plot.addItem(
-                pg.InfiniteLine(pos=self._upper_threshold, angle=0,
-                                pen={'color': (0, 0, 255, 63), 'width': 2.}))
+            self.draw_guide(plot, self._upper_threshold, 'green')
+
+    def draw_guide(self, plot, pos, color, orientation='horizontal'):
+        if orientation == 'vertical':
+            angle = 90
+        else:
+            angle = 0
+        color = GUIDE_COLORS[color]
+        plot.addItem(pg.InfiniteLine(
+            pos=pos, angle=angle,
+            pen={'color': color, 'width': 2.}))
 
     def init_spectrum_plot(self):
         self.spectrum_plot.clear()
