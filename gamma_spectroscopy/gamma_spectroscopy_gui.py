@@ -345,16 +345,20 @@ class UserInterface(QtWidgets.QMainWindow):
 
         if self._is_upper_threshold_enabled:
             channel_idx = ['A', 'B'].index(self._trigger_channel)
-            pulseheights = pulseheights.compress(
-                pulseheights[channel_idx, :] <= self._upper_threshold * 1e3,
-                axis=1)
+            condition = (pulseheights[channel_idx, :]
+                         <= self._upper_threshold * 1e3)
+            A = A.compress(condition, axis=0)
+            B = B.compress(condition, axis=0)
+            baselines = baselines.compress(condition, axis=1)
+            pulseheights = pulseheights.compress(condition, axis=1)
 
         for channel, values in zip(['A', 'B'], pulseheights):
             self._pulseheights[channel].extend(values)
 
-        self.update_event_plot(x, A[-1], B[-1], pulseheights[:, -1],
-                               baselines[:, -1])
-        self.update_spectrum_plot()
+        if len(A) > 0:
+            self.update_event_plot(x, A[-1], B[-1], pulseheights[:, -1],
+                                   baselines[:, -1])
+            self.update_spectrum_plot()
 
     def init_event_plot(self):
         self.event_plot.clear()
