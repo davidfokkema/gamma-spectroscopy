@@ -65,13 +65,12 @@ class UserInterface(QtWidgets.QMainWindow):
 
     _t_start_run = 0
     _t_prev_run_time = 0
-    _run_min_baseline = [0, 0]
-    _run_max_baseline = [0, 0]
 
     def __init__(self, use_fake=False):
         super().__init__()
 
         self._pulseheights = {'A': [], 'B': []}
+        self._baselines = {'A': [], 'B': []}
 
         if use_fake:
             self.scope = FakePicoScope()
@@ -326,7 +325,7 @@ class UserInterface(QtWidgets.QMainWindow):
         self._t_start_run = time.time()
         self.num_events = 0
         self._pulseheights = {'A': [], 'B': []}
-        self._run_min_baseline, self._run_max_baseline = [0, 0], [0, 0]
+        self._baselines = {'A': [], 'B': []}
         self._update_run_time_label()
         self.init_spectrum_plot()
 
@@ -358,17 +357,12 @@ class UserInterface(QtWidgets.QMainWindow):
             baselines = baselines.compress(condition, axis=1)
             pulseheights = pulseheights.compress(condition, axis=1)
 
-        for channel, values in zip(['A', 'B'], pulseheights):
-            self._pulseheights[channel].extend(values)
+        for channel, blvalues, phvalues in zip(['A', 'B'], baselines,
+                                               pulseheights):
+            self._baselines[channel].extend(blvalues)
+            self._pulseheights[channel].extend(phvalues)
 
         if len(A) > 0:
-            # store min and max baselines for current run
-            # axis dark magic (check carefully)
-            self._run_min_baseline = np.min(
-                [self._run_min_baseline, baselines.min(axis=1)], axis=0)
-            self._run_max_baseline = np.max(
-                [self._run_max_baseline, baselines.max(axis=1)], axis=0)
-
             self.update_event_plot(x, A[-1], B[-1], pulseheights[:, -1],
                                    baselines[:, -1])
             self.update_spectrum_plot()
@@ -421,7 +415,7 @@ class UserInterface(QtWidgets.QMainWindow):
         if self._is_upper_threshold_enabled:
             self.draw_guide(plot, self._upper_threshold, 'green')
 
-    def draw_guide(self, plot, pos, color, orientation='horizontal'):
+    def draw_guide(self, plot, pos, color, orientation='horizontal', width=2.):
         if orientation == 'vertical':
             angle = 90
         else:
@@ -429,7 +423,7 @@ class UserInterface(QtWidgets.QMainWindow):
         color = GUIDE_COLORS[color]
         plot.addItem(pg.InfiniteLine(
             pos=pos, angle=angle,
-            pen={'color': color, 'width': 2.}))
+            pen={'color': color, 'width': width}))
 
     def init_spectrum_plot(self):
         self.spectrum_plot.clear()
@@ -470,8 +464,10 @@ class UserInterface(QtWidgets.QMainWindow):
         return x, bins, channel_counts
 
     def draw_spectrum_plot_guides(self):
-        min_blA, min_blB = self._run_min_baseline
-        max_blA, max_blB = self._run_max_baseline
+        min_blA = np.percentile(self._baselines['A'], 5)
+        min_blB = np.percentile(self._baselines['B'], 5)
+        # max_blA = np.percentile(self._baselines['A'], 95)
+        # max_blB = np.percentile(self._baselines['B'], 95)
         plot = self.spectrum_plot
 
         self.draw_guide(plot, self._threshold * 1e3, 'green', 'vertical')
@@ -485,26 +481,28 @@ class UserInterface(QtWidgets.QMainWindow):
             if self.ch_A_enabled_box.isChecked():
                 lower_bound = self._threshold - min_blA
                 self.draw_guide(plot, lower_bound * 1e3, 'purple', 'vertical')
-                clip_level = (self._range - self._offset) - max_blA
-                self.draw_guide(plot, clip_level * 1e3, 'purple', 'vertical')
+                # REALLY think about these ones (only look for actual clipping?)
+                # clip_level = (self._range - self._offset) - max_blA
+                # self.draw_guide(plot, clip_level * 1e3, 'purple', 'vertical')
 
-                if (self._is_upper_threshold_enabled
-                        and self._trigger_channel == 'A'):
-                    upper_bound = self._upper_threshold - max_blA
-                    self.draw_guide(plot, upper_bound * 1e3, 'purple',
-                                    'vertical')
+                # if (self._is_upper_threshold_enabled
+                #         and self._trigger_channel == 'A'):
+                #     upper_bound = self._upper_threshold - max_blA
+                #     self.draw_guide(plot, upper_bound * 1e3, 'purple',
+                #                     'vertical')
 
             if self.ch_B_enabled_box.isChecked():
                 lower_bound = self._threshold - min_blB
                 self.draw_guide(plot, lower_bound * 1e3, 'purple', 'vertical')
-                clip_level = (self._range - self._offset) - max_blB
-                self.draw_guide(plot, clip_level * 1e3, 'purple', 'vertical')
+                # REALLY think about these ones (only look for actual clipping?)
+                # clip_level = (self._range - self._offset) - max_blB
+                # self.draw_guide(plot, clip_level * 1e3, 'purple', 'vertical')
 
-                if (self._is_upper_threshold_enabled
-                        and self._trigger_channel == 'B'):
-                    upper_bound = self._upper_threshold - max_blB
-                    self.draw_guide(plot, upper_bound * 1e3, 'purple',
-                                    'vertical')
+                # if (self._is_upper_threshold_enabled
+                #         and self._trigger_channel == 'B'):
+                #     upper_bound = self._upper_threshold - max_blB
+                #     self.draw_guide(plot, upper_bound * 1e3, 'purple',
+                #                     'vertical')
 
     def export_spectrum_dialog(self):
         """Dialog for exporting a data file."""
