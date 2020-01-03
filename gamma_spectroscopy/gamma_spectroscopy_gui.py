@@ -335,7 +335,7 @@ class UserInterface(QtWidgets.QMainWindow):
             if self._is_baseline_correction_enabled and num_samples > 0:
                 bl = data[:, :num_samples].mean(axis=1)
             else:
-                bl = 0
+                bl = np.zeros(len(A))
             ph = (data.max(axis=1) - bl) * 1e3
             baselines.append(bl)
             pulseheights.append(ph)
