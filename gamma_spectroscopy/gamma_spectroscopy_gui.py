@@ -168,13 +168,14 @@ class UserInterface(QtWidgets.QMainWindow):
             self.stop_run()
 
     def start_run(self):
-        self._is_running = True
-        self._t_start_run = time.time()
-        self._update_run_time_label()
-        self.run_timer.start()
-        self.start_run_signal.emit()
-        self.run_stop_button.setText("Stop")
-        self.single_button.setDisabled(True)
+        if not self.is_run_time_completed():
+            self._is_running = True
+            self._t_start_run = time.time()
+            self._update_run_time_label()
+            self.run_timer.start()
+            self.start_run_signal.emit()
+            self.run_stop_button.setText("Stop")
+            self.single_button.setDisabled(True)
 
     def stop_run(self):
         self._is_running = False
@@ -308,14 +309,16 @@ class UserInterface(QtWidgets.QMainWindow):
             self.num_events += len(A)
             self.plot_data_signal.emit({'x': t, 'A': A, 'B': B})
         if self._is_running:
-            self.start_run_signal.emit()
-        if self.is_run_time_completed():
-            self.stop_run()
+            if self.is_run_time_completed():
+                self.stop_run()
+            else:
+                self.start_run_signal.emit()
 
     def is_run_time_completed(self):
-        run_time = time.time() - self._t_start_run
-        all_run_time = self._t_prev_run_time + run_time
-        return all_run_time >= self.run_duration_box.value()
+        run_time = self._t_prev_run_time
+        if self._is_running:
+            run_time += time.time() - self._t_start_run
+        return run_time >= self.run_duration_box.value()
 
     @QtCore.pyqtSlot()
     def clear_run(self):
