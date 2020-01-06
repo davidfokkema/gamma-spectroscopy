@@ -1,3 +1,10 @@
+Changed in version 1.0:
+  * Added visual guides for baseline, pulse heights and thresholds
+  * The start button will continue a previous run instead of clearing all data and
+    restarting.
+  * Added button to easily reset the plot ranges after zooming or panning
+  * Several bug fixes and UI tweaks
+
 Changed in version 0.9.4:
   * Increased range of possible threshold values
 
