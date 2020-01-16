@@ -435,13 +435,14 @@ class UserInterface(QtWidgets.QMainWindow):
         self.spectrum_plot.enableAutoRange()
 
     def update_spectrum_plot(self):
-        self.spectrum_plot.clear()
-        x, bins, channel_counts = self.make_spectrum()
-        for counts, color in zip(channel_counts, ['k', 'b']):
-            if counts is not None:
-                self.spectrum_plot.plot(x, counts, pen={'color': color,
-                                                        'width': 2.})
-        self.draw_spectrum_plot_guides()
+        if len(self._baselines['A']) > 0:
+            self.spectrum_plot.clear()
+            x, bins, channel_counts = self.make_spectrum()
+            for counts, color in zip(channel_counts, ['k', 'b']):
+                if counts is not None:
+                    self.spectrum_plot.plot(x, counts, pen={'color': color,
+                                                            'width': 2.})
+            self.draw_spectrum_plot_guides()
 
     def make_spectrum(self):
         xrange = 2 * self._range * 1e3
