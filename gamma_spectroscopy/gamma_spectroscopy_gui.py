@@ -22,6 +22,21 @@ GUIDE_COLORS = {
     'purple': (255, 0, 255, 63),
 }
 
+# Custom symbol for use in (mostly) histogram plot
+histogram_symbol = pg.QtGui.QPainterPath()
+histogram_symbol.moveTo(0, -.5)
+histogram_symbol.lineTo(0, .5)
+
+PLOT_OPTIONS = {
+    'lines': {'A': {'pen': {'color': 'k', 'width': 2.}},
+              'B': {'pen': {'color': 'b', 'width': 2.}},
+             },
+    'marks': {'A': {'pen': None, 'symbol': histogram_symbol,
+                    'symbolPen': 'k', 'symbolSize': 2},
+              'B': {'pen': None, 'symbol': histogram_symbol,
+                    'symbolPen': 'b', 'symbolSize': 2},
+             },
+}
 
 def create_callback(signal):
     @ctypes.CFUNCTYPE(None, ctypes.c_int16, ctypes.c_int, ctypes.c_void_p)
@@ -50,6 +65,9 @@ class UserInterface(QtWidgets.QMainWindow):
     _pulse_polarity = 'Positive'
     _polarity_sign = 1
     _is_baseline_correction_enabled = True
+    _show_guides = False
+    _show_marks = False
+    _plot_options = PLOT_OPTIONS['lines']
 
     _range = 0
     _offset_level = 0.
@@ -142,6 +160,12 @@ class UserInterface(QtWidgets.QMainWindow):
         self.reset_event_axes_button.clicked.connect(self.reset_event_axes)
         self.reset_spectrum_axes_button.clicked.connect(
             self.reset_spectrum_axes)
+        self.toggle_guides_button1.clicked.connect(self.toggle_guides)
+        self.toggle_guides_button2.clicked.connect(self.toggle_guides)
+        self.toggle_markslines_button1.clicked.connect(
+            self.toggle_show_marks_or_lines)
+        self.toggle_markslines_button2.clicked.connect(
+            self.toggle_show_marks_or_lines)
 
         self.run_timer.timeout.connect(self._update_run_time_label)
 
@@ -302,6 +326,18 @@ class UserInterface(QtWidgets.QMainWindow):
         self.num_events_label.repaint()
 
     @QtCore.pyqtSlot()
+    def toggle_guides(self):
+        self._show_guides = not self._show_guides
+
+    @QtCore.pyqtSlot()
+    def toggle_show_marks_or_lines(self):
+        self._show_marks = not self._show_marks
+        if self._show_marks:
+            self._plot_options = PLOT_OPTIONS['marks']
+        else:
+            self._plot_options = PLOT_OPTIONS['lines']
+
+    @QtCore.pyqtSlot()
     def fetch_data(self):
         t, [A, B] = self.scope.get_data()
         if A is not None:
@@ -381,14 +417,12 @@ class UserInterface(QtWidgets.QMainWindow):
     def update_event_plot(self, x, A, B, pulseheights, baselines):
         self.event_plot.clear()
         if self.ch_A_enabled_box.isChecked():
-            self.event_plot.plot(x * 1e6, A,
-                                 pen={'color': 'k', 'width': 2.})
+            self.event_plot.plot(x * 1e6, A, **self._plot_options['A'])
         if self.ch_B_enabled_box.isChecked():
-            self.event_plot.plot(x * 1e6, B,
-                                 pen={'color': 'b', 'width': 2.})
+            self.event_plot.plot(x * 1e6, B, **self._plot_options['B'])
 
-        self.draw_event_plot_guides(x, baselines, pulseheights)
-        qtapp.processEvents()
+        if self._show_guides:
+            self.draw_event_plot_guides(x, baselines, pulseheights)
 
     def draw_event_plot_guides(self, x, baselines, pulseheights):
         phA, phB = pulseheights
@@ -439,11 +473,12 @@ class UserInterface(QtWidgets.QMainWindow):
         if len(self._baselines['A']) > 0:
             self.spectrum_plot.clear()
             x, bins, channel_counts = self.make_spectrum()
-            for counts, color in zip(channel_counts, ['k', 'b']):
+            for counts, channel in zip(channel_counts, ['A', 'B']):
                 if counts is not None:
-                    self.spectrum_plot.plot(x, counts, pen={'color': color,
-                                                            'width': 2.})
-            self.draw_spectrum_plot_guides()
+                    self.spectrum_plot.plot(
+                        x, counts, **self._plot_options[channel])
+            if self._show_guides:
+                self.draw_spectrum_plot_guides()
 
     def make_spectrum(self):
         xrange = 2 * self._range * 1e3
