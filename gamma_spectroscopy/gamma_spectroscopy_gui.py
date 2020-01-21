@@ -388,6 +388,7 @@ class UserInterface(QtWidgets.QMainWindow):
                                  pen={'color': 'b', 'width': 2.})
 
         self.draw_event_plot_guides(x, baselines, pulseheights)
+        qtapp.processEvents()
 
     def draw_event_plot_guides(self, x, baselines, pulseheights):
         phA, phB = pulseheights
@@ -526,6 +527,8 @@ class UserInterface(QtWidgets.QMainWindow):
 
 
 def main():
+    global qtapp
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--fake', action='store_true',
                         help="Use fake hardware")
