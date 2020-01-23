@@ -28,13 +28,13 @@ histogram_symbol.moveTo(0, -.5)
 histogram_symbol.lineTo(0, .5)
 
 PLOT_OPTIONS = {
-    'lines': {'A': {'pen': {'color': 'k', 'width': 2.}},
-              'B': {'pen': {'color': 'b', 'width': 2.}},
+    'lines': {'A': {'pen': {'color': 'w', 'width': 2.}},
+              'B': {'pen': {'color': (255, 200, 0), 'width': 2.}},
              },
     'marks': {'A': {'pen': None, 'symbol': histogram_symbol,
-                    'symbolPen': 'k', 'symbolSize': 2},
+                    'symbolPen': 'w', 'symbolSize': 2},
               'B': {'pen': None, 'symbol': histogram_symbol,
-                    'symbolPen': 'b', 'symbolSize': 2},
+                    'symbolPen': (255, 200, 0), 'symbolSize': 2},
              },
 }
 
@@ -102,8 +102,8 @@ class UserInterface(QtWidgets.QMainWindow):
         self.scope.stop()
 
     def init_ui(self):
-        pg.setConfigOption('background', 'w')
-        pg.setConfigOption('foreground', 'k')
+        pg.setConfigOption('background', 'k')
+        pg.setConfigOption('foreground', 'w')
         pg.setConfigOption('antialias', True)
 
         ui_path = resource_filename('gamma_spectroscopy',
