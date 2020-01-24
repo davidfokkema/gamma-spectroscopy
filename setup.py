@@ -5,7 +5,7 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="gamma-spectroscopy",
-    version="1.0.1",
+    version="1.1",
     author="David Fokkema",
     author_email="davidfokkema@icloud.com",
     description="A GUI for gamma spectroscopy using a PicoScope",

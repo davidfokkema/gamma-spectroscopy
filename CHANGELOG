@@ -1,3 +1,7 @@
+Changed in version 1.1:
+  * Tweaked UI: toggles for plot options for increased speed and changed
+    colors for better visibility
+
 Changed in version 1.0.1:
   * Fix crash when changing number of histogram bins before taking data
 
