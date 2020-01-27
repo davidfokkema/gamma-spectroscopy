@@ -10,7 +10,7 @@ setuptools.setup(
     author_email="davidfokkema@icloud.com",
     description="A GUI for gamma spectroscopy using a PicoScope",
     long_description=long_description,
-    long_description_content_type="text/markdown",
+    long_description_content_type="text/x-rst",
     url="https://github.com/davidfokkema/gamma-spectroscopy",
     packages=setuptools.find_packages(),
     package_data={
