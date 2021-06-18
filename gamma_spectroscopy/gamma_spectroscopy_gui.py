@@ -50,6 +50,8 @@ class UserInterface(QtWidgets.QMainWindow):
     POLARITY = ['Positive', 'Negative']
     POLARITY_SIGN = [1, -1]
 
+    COUPLING = ['AC', 'DC']
+
     start_run_signal = QtCore.pyqtSignal()
     new_data_signal = QtCore.pyqtSignal()
     plot_data_signal = QtCore.pyqtSignal(dict)
@@ -60,6 +62,7 @@ class UserInterface(QtWidgets.QMainWindow):
 
     _is_running = False
     _trigger_channel = 'A'
+    _coupling = 'AC'
     _is_trigger_enabled = False
     _is_upper_threshold_enabled = False
     _pulse_polarity = 'Positive'
@@ -135,6 +138,8 @@ class UserInterface(QtWidgets.QMainWindow):
         self.polarity_box.addItems(self.POLARITY)
         self.polarity_box.currentIndexChanged.connect(self.set_polarity)
         self._pulse_polarity = self.POLARITY[0]
+        self.coupling_box.addItems(self.COUPLING)
+        self.coupling_box.currentIndexChanged.connect(self.set_coupling)
         self.offset_box.valueChanged.connect(self.set_offset)
         self.threshold_box.valueChanged.connect(self.set_threshold)
         self.upper_threshold_box.valueChanged.connect(self.set_upper_threshold)
@@ -259,15 +264,20 @@ class UserInterface(QtWidgets.QMainWindow):
         self.set_trigger()
 
     @QtCore.pyqtSlot(int)
+    def set_coupling(self, idx):
+        self._coupling = self.COUPLING[idx]
+        self.set_channel()
+
+    @QtCore.pyqtSlot(int)
     def set_baseline_correction_state(self, state):
         self._is_baseline_correction_enabled = state
 
     def set_channel(self):
         self._offset = np.interp(self._offset_level, [-100, 100],
                                  [-self._range, self._range])
-        self.scope.set_channel('A', 'DC', self._range,
+        self.scope.set_channel('A', self._coupling, self._range,
                                self._polarity_sign * self._offset)
-        self.scope.set_channel('B', 'DC', self._range,
+        self.scope.set_channel('B', self._coupling, self._range,
                                self._polarity_sign * self._offset)
         self.event_plot.setYRange(-self._range - self._offset,
                                   self._range - self._offset)
