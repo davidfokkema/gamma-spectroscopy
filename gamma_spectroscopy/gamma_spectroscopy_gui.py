@@ -134,7 +134,7 @@ class UserInterface(QtWidgets.QMainWindow):
 
         self.range_box.addItems(INPUT_RANGES.values())
         self.range_box.currentIndexChanged.connect(self.set_range)
-        self.range_box.setCurrentIndex(6)
+        self.range_box.setCurrentIndex(5)
         self.polarity_box.addItems(self.POLARITY)
         self.polarity_box.currentIndexChanged.connect(self.set_polarity)
         self._pulse_polarity = self.POLARITY[0]
@@ -215,6 +215,10 @@ class UserInterface(QtWidgets.QMainWindow):
         self.run_stop_button.setText("Run")
         self.single_button.setDisabled(False)
 
+        nData = len(self._pulseheights['A'])
+        for i in range(nData-20, nData, 1):
+            print(self._pulseheights['A'][i], self._pulseheights['B'][i])
+
     @QtCore.pyqtSlot()
     def start_scope_run(self):
         num_captures = self.num_captures_box.value()
@@ -253,8 +257,9 @@ class UserInterface(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def set_upper_trigger_state(self, state):
-        self._is_upper_threshold_enabled = state
-        self.scope.stop()
+        if not self._trigger_channel == 'Both':
+            self._is_upper_threshold_enabled = state
+            self.scope.stop()
 
     @QtCore.pyqtSlot(int)
     def set_polarity(self, idx):
@@ -285,11 +290,23 @@ class UserInterface(QtWidgets.QMainWindow):
 
     def set_trigger(self):
         edge = 'RISING' if self._pulse_polarity == 'Positive' else 'FALLING'
-        # get last letter of trigger channel box ('Channel A' -> 'A')
-        channel = self.trigger_channel_box.currentText()[-1]
-        self._trigger_channel = channel
-        self.scope.set_trigger(channel, self._polarity_sign * self._threshold,
-                               edge, is_enabled=self._is_trigger_enabled)
+        if self.trigger_channel_box.currentText() == 'Both':
+            self._trigger_channel = 'Both'
+            self.scope.set_trigger_both(self._polarity_sign * self._threshold,
+                                        edge,
+                                        is_enabled=self._is_trigger_enabled)
+            self._upper_trigger_state = False
+            self.upper_trigger_box.setCheckable(False)
+        else:
+            # get last letter of trigger channel box ('Channel A' -> 'A')
+            channel = self.trigger_channel_box.currentText()[-1]
+            self._trigger_channel = channel
+            self.scope.set_trigger(channel,
+                                   self._polarity_sign * self._threshold,
+                                   edge, is_enabled=self._is_trigger_enabled)
+            self.upper_trigger_box.setCheckable(True)
+        if self._show_guides:
+            self.draw_spectrum_plot_guides()
         self.scope.stop()
 
     @QtCore.pyqtSlot(int)
@@ -395,13 +412,14 @@ class UserInterface(QtWidgets.QMainWindow):
         pulseheights = np.array(pulseheights)
 
         if self._is_upper_threshold_enabled:
-            channel_idx = ['A', 'B'].index(self._trigger_channel)
-            condition = (pulseheights[channel_idx, :]
-                         <= self._upper_threshold * 1e3)
-            A = A.compress(condition, axis=0)
-            B = B.compress(condition, axis=0)
-            baselines = baselines.compress(condition, axis=1)
-            pulseheights = pulseheights.compress(condition, axis=1)
+            if not self._trigger_channel == 'Both':
+                channel_idx = ['A', 'B'].index(self._trigger_channel)
+                condition = (pulseheights[channel_idx, :]
+                            <= self._upper_threshold * 1e3)
+                A = A.compress(condition, axis=0)
+                B = B.compress(condition, axis=0)
+                baselines = baselines.compress(condition, axis=1)
+                pulseheights = pulseheights.compress(condition, axis=1)
 
         for channel, blvalues, phvalues in zip(['A', 'B'], baselines,
                                                pulseheights):
@@ -456,8 +474,10 @@ class UserInterface(QtWidgets.QMainWindow):
             pass
 
         # mark trigger thresholds
-        self.draw_guide(plot, self._threshold, 'green')
-        if self._is_upper_threshold_enabled:
+        if self._is_trigger_enabled:
+            self.draw_guide(plot, self._threshold, 'green')
+        if self._is_upper_threshold_enabled \
+           and not self._trigger_channel == 'Both':
             self.draw_guide(plot, self._upper_threshold, 'green')
 
     def draw_guide(self, plot, pos, color, orientation='horizontal', width=2.):
@@ -517,10 +537,14 @@ class UserInterface(QtWidgets.QMainWindow):
         # max_blB = np.percentile(self._baselines['B'], 95)
         plot = self.spectrum_plot
 
-        self.draw_guide(plot, self._threshold * 1e3, 'green', 'vertical')
+        if self._is_trigger_enabled:
+            self.draw_guide(plot, self._threshold * 1e3, 'green', 'vertical')
+
         clip_level = (self._range - self._offset)
         self.draw_guide(plot, clip_level * 1e3, 'red', 'vertical')
-        if self._is_upper_threshold_enabled:
+
+        if self._is_upper_threshold_enabled  \
+           and not self._trigger_channel == 'Both':
             self.draw_guide(plot, self._upper_threshold * 1e3, 'green',
                             'vertical')
 

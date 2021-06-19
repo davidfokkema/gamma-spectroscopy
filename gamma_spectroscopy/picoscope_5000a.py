@@ -420,6 +420,61 @@ class PicoScope5000A:
             self._handle, is_enabled, channel, threshold, direction, delay,
             auto_trigger))
 
+    def set_trigger_both(self, threshold=0., direction='RISING',
+                         is_enabled=True):
+        """Set the oscilloscope to trigger on both channels.
+
+        :param threshold: the trigger threshold (in V)
+        :param direction: the direction in which the signal must move to cause
+            a trigger
+        :param is_enabled: (boolean) enable or disable the trigger
+
+        The direction parameter can take values of 'ABOVE', 'BELOW', 'RISING',
+        'FALLING' or 'RISING_OR_FALLING'.
+        """
+
+        channelA = ps.PS5000A_CHANNEL["PS5000A_CHANNEL_A"]
+        channelB = ps.PS5000A_CHANNEL["PS5000A_CHANNEL_B"]
+        dir      = _get_trigger_direction_from_name(direction)
+        mode     = ps.PS5000A_THRESHOLD_MODE["PS5000A_LEVEL"]
+
+        Direction2       = ps.PS5000A_DIRECTION*2 # see ctypes docs
+        trigDirectionAB  = Direction2(ps.PS5000A_DIRECTION(channelA, dir, mode),
+                                      ps.PS5000A_DIRECTION(channelB, dir, mode))
+
+        thresholdA = self._rescale_V_to_adc('A', threshold)
+        thresholdB = self._rescale_V_to_adc('B', threshold)
+        Property2  = ps.PS5000A_TRIGGER_CHANNEL_PROPERTIES_V2*2
+        trigPropertiesAB = \
+          Property2(ps.PS5000A_TRIGGER_CHANNEL_PROPERTIES_V2(thresholdA,
+                                                             0, 0, 0, channelA),
+                    ps.PS5000A_TRIGGER_CHANNEL_PROPERTIES_V2(thresholdB,
+                                                             0, 0, 0, channelB))
+
+        state_true      = ps.PS5000A_TRIGGER_STATE["PS5000A_CONDITION_TRUE"]
+        trigConditionA  = ps.PS5000A_CONDITION(channelA, state_true)
+        trigConditionB  = ps.PS5000A_CONDITION(channelB, state_true)
+
+        # Multiple directions/properties: logical OR
+        assert_pico_ok(ps.ps5000aSetTriggerChannelDirectionsV2(self._handle,
+                                           ctypes.byref(trigDirectionAB), 2))
+        assert_pico_ok(ps.ps5000aSetTriggerChannelPropertiesV2(self._handle,
+                                       ctypes.byref(trigPropertiesAB), 2, 0))
+
+        clear     = 1 # 0b00000001
+        add       = 2 # 0b00000010
+        # Multiple conditions: Logical AND; Multiple calls: logical OR
+        if is_enabled:
+            print('Enabling trigger on Both')
+            assert_pico_ok(ps.ps5000aSetTriggerChannelConditionsV2(self._handle,
+                                  ctypes.byref(trigConditionA), 1, (clear+add)))
+            assert_pico_ok(ps.ps5000aSetTriggerChannelConditionsV2(self._handle,
+                                          ctypes.byref(trigConditionB), 1, add))
+        else:
+            print('Disabling trigger on Both.')
+            assert_pico_ok(ps.ps5000aSetTriggerChannelConditionsV2(self._handle,
+                                        ctypes.byref(trigConditionA), 0, clear))
+
     def _get_enabled_channels(self):
         """Return list of enabled channels."""
         return [channel for channel, status in self._channels_enabled.items()

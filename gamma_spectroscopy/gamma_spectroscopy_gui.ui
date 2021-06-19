@@ -337,6 +337,11 @@
             <string>Channel B</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>Both</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item row="7" column="0">
@@ -375,7 +380,7 @@
            <number>65535</number>
           </property>
           <property name="value">
-           <number>2000</number>
+           <number>20</number>
           </property>
          </widget>
         </item>
@@ -409,10 +414,10 @@
            <number>3</number>
           </property>
           <property name="maximum">
-           <double>1000000.000000000000000</double>
+           <double>100000.000000000000000</double>
           </property>
           <property name="value">
-           <double>1000.000000000000000</double>
+           <double>10.000000000000000</double>
           </property>
          </widget>
         </item>
@@ -435,7 +440,7 @@
            <double>1000000.000000000000000</double>
           </property>
           <property name="value">
-           <double>1000.000000000000000</double>
+           <double>10.000000000000000</double>
           </property>
          </widget>
         </item>
@@ -568,7 +573,7 @@
            <number>4095</number>
           </property>
           <property name="value">
-           <number>100</number>
+           <number>256</number>
           </property>
          </widget>
         </item>
