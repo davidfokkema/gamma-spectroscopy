@@ -3,6 +3,7 @@ import csv
 import ctypes
 from math import floor
 import sys
+from pathlib import Path
 import time
 
 import numpy as np
@@ -85,7 +86,14 @@ class UserInterface(QtWidgets.QMainWindow):
     _num_samples = 0
 
     _t_start_run = 0
+    _run_time = 0
     _t_prev_run_time = 0
+
+    _write_output = False
+    _output_path = Path.home() / 'Documents'
+    _run_number = 0
+    _output_filename = None
+    _output_file = None
 
     def __init__(self, use_fake=False):
         super().__init__()
@@ -120,12 +128,24 @@ class UserInterface(QtWidgets.QMainWindow):
         export_spectrum_action.setShortcut('Ctrl+S')
         export_spectrum_action.triggered.connect(self.export_spectrum_dialog)
 
+        write_output_action = QtWidgets.QAction('&Write output files', self)
+        write_output_action.setShortcut('Ctrl+O')
+        write_output_action.triggered.connect(self.write_output_dialog)
+
         file_menu = menubar.addMenu('&File')
         file_menu.addAction(export_spectrum_action)
+        file_menu.addAction(write_output_action)
 
         layout.setMenuBar(menubar)
 
+        statusbar = QtWidgets.QStatusBar()
+        self.label_status = QtWidgets.QLabel("")
+        statusbar.addWidget(self.label_status)
+
+        layout.setStatusBar(statusbar)
+
         self.start_run_signal.connect(self.start_scope_run)
+        self.start_run_signal.connect(self._update_run_label)
 
         self.new_data_signal.connect(self.fetch_data)
         self.callback = create_callback(self.new_data_signal)
@@ -199,25 +219,31 @@ class UserInterface(QtWidgets.QMainWindow):
         if not self.is_run_time_completed():
             self._is_running = True
             self._t_start_run = time.time()
+            self._run_time = 0
             self._update_run_time_label()
             self.run_timer.start()
             self.start_run_signal.emit()
             self.run_stop_button.setText("Stop")
             self.single_button.setDisabled(True)
+            self._update_run_label()
+            if self._write_output:
+                self.open_output_file()
+                writer = csv.writer(self._output_file)
+                writer.writerow(('trigger_time_A','pulse_height_A',
+                                 'trigger_time_B','pulse_height_B'))
 
     def stop_run(self):
         self._is_running = False
         self._update_run_time_label()
         self.scope.stop()
         self.run_timer.stop()
-        run_time = time.time() - self._t_start_run
-        self._t_prev_run_time += run_time
+        self._run_time = time.time() - self._t_start_run
+        self._t_prev_run_time += self._run_time
         self.run_stop_button.setText("Run")
         self.single_button.setDisabled(False)
-
-        nData = len(self._pulseheights['A'])
-        for i in range(nData-20, nData, 1):
-            print(self._pulseheights['A'][i], self._pulseheights['B'][i])
+        if self._write_output:
+            self.write_info_file()
+            self.close_output_file()
 
     @QtCore.pyqtSlot()
     def start_scope_run(self):
@@ -352,6 +378,17 @@ class UserInterface(QtWidgets.QMainWindow):
         self.run_time_label.repaint()
         self.num_events_label.repaint()
 
+    def _update_run_label(self):
+        self.run_number_label.setText(f"{self._run_number}")
+        self.run_number_label.repaint()
+
+    def _update_status_bar(self):
+        if self._write_output:
+            status_message = f'Output directory: {str(self._output_path)}'
+        else:
+            status_message = ''
+        self.label_status.setText(status_message)
+
     @QtCore.pyqtSlot()
     def toggle_guides(self):
         self._show_guides = not self._show_guides
@@ -395,8 +432,7 @@ class UserInterface(QtWidgets.QMainWindow):
     @QtCore.pyqtSlot(dict)
     def plot_data(self, data):
         x, A, B = data['x'], data['A'], data['B']
-
-        baselines, pulseheights = [], []
+        times, baselines, pulseheights = [], [], []
         for data in A, B:
             data *= self._polarity_sign
             num_samples = int(self._pre_samples * .8)
@@ -405,11 +441,19 @@ class UserInterface(QtWidgets.QMainWindow):
             else:
                 bl = np.zeros(len(A))
             ph = (data.max(axis=1) - bl) * 1e3
+            ts = x[np.argmax(data, axis=1)]
+            times.append(ts)
             baselines.append(bl)
             pulseheights.append(ph)
 
+        times = np.array(times)
         baselines = np.array(baselines)
         pulseheights = np.array(pulseheights)
+
+        if self._write_output and not self._output_file.closed:
+            writer = csv.writer(self._output_file)
+            for row in zip(times[0], pulseheights[0], times[1], pulseheights[1]):
+                writer.writerow(row)
 
         if self._is_upper_threshold_enabled:
             if not self._trigger_channel == 'Both':
@@ -421,8 +465,8 @@ class UserInterface(QtWidgets.QMainWindow):
                 baselines = baselines.compress(condition, axis=1)
                 pulseheights = pulseheights.compress(condition, axis=1)
 
-        for channel, blvalues, phvalues in zip(['A', 'B'], baselines,
-                                               pulseheights):
+        for channel, tvalues, blvalues, phvalues \
+            in zip(['A', 'B'], times, baselines, pulseheights):
             self._baselines[channel].extend(blvalues)
             self._pulseheights[channel].extend(phvalues)
 
@@ -588,12 +632,69 @@ class UserInterface(QtWidgets.QMainWindow):
         channel_counts = [u if u is not None else [0] * len(x) for
                           u in channel_counts]
 
-        with open(file_path, 'w') as f:
+        with open(file_path, 'w', newline='') as f:
             writer = csv.writer(f)
             writer.writerow(('pulseheight', 'counts_ch_A', 'counts_ch_B'))
             for row in zip(x, *channel_counts):
                 writer.writerow(row)
 
+    def write_output_dialog(self):
+        self._write_output = True
+        file_path = QtWidgets.QFileDialog.getExistingDirectory(self,
+            caption="Choose directory for output files",
+            directory=str(self._output_path.absolute()))
+        self._output_path = Path(file_path)
+        self._update_status_bar()
+        #print('Output directory: {}'.format(self._output_path))
+
+    def open_output_file(self):
+        for x in Path(self._output_path).glob('*.csv'):
+            if x.is_file() and x.name[0:3] == 'Run':
+                self._run_number = int(x.name[3:7]) + 1
+
+        self._output_filename =  self._output_path / 'Run{0:04d}.csv'\
+                                                       .format(self._run_number)
+
+        try:
+             self._output_file = open(self._output_filename, 'w',
+                                      newline='')
+             return 1
+        except IOError:
+            print('Error: Unable to open: {}'\
+                  .format(self._output_filename))
+            return 0
+
+    def close_output_file(self):
+        try:
+            self._output_file.close()
+            return 1
+        except IOError:
+            print('Error: Unable to close: {}'\
+                  .format(self._output_filename))
+            return 0
+
+    def write_info_file(self):
+        info_filename = self._output_filename.with_suffix('.info')
+        try:
+            info_file = open(info_filename, 'w', newline='', encoding="utf-8")
+        except IOError:
+            print(f'Error: Unable to open: {info_filename}\n')
+        info_file.write(f'Start time: {time.ctime(self._t_start_run)}\n')
+        info_file.write(f'Run time: {self._run_time:.1f} s\n')
+        info_file.write(f'Coupling: {self._coupling}\n')
+        info_file.write(f'Baseline correction: {self._is_baseline_correction_enabled}\n')
+        if self._is_trigger_enabled:
+            info_file.write(f'Trigger channel: {self._trigger_channel}\n')
+            info_file.write(f'Threshold: {self._threshold:.3f} V\n')
+        else:
+            info_file.write('Untriggered\n')
+        info_file.write('Pre-trigger window: {0:.2f} μs\n'\
+                        .format(self._pre_trigger_window/1e3))
+        info_file.write('Post-trigger window {0:.2f} μs\n'\
+                        .format(self._post_trigger_window/1e3))
+        info_file.write(f'Samples per capture: {self._num_samples}\n')
+        info_file.write(f'Captures per block: {self.num_captures_box.value()}\n')
+        info_file.close()
 
 def main():
     global qtapp

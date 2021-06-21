@@ -465,13 +465,12 @@ class PicoScope5000A:
         add       = 2 # 0b00000010
         # Multiple conditions: Logical AND; Multiple calls: logical OR
         if is_enabled:
-            print('Enabling trigger on Both')
             assert_pico_ok(ps.ps5000aSetTriggerChannelConditionsV2(self._handle,
                                   ctypes.byref(trigConditionA), 1, (clear+add)))
             assert_pico_ok(ps.ps5000aSetTriggerChannelConditionsV2(self._handle,
                                           ctypes.byref(trigConditionB), 1, add))
+            assert_pico_ok(ps.ps5000aSetAutoTriggerMicroSeconds(self._handle, 0))
         else:
-            print('Disabling trigger on Both.')
             assert_pico_ok(ps.ps5000aSetTriggerChannelConditionsV2(self._handle,
                                         ctypes.byref(trigConditionA), 0, clear))
 
