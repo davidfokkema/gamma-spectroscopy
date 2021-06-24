@@ -555,7 +555,8 @@ class UserInterface(QtWidgets.QMainWindow):
                 self.draw_spectrum_plot_guides()
 
     def make_spectrum(self):
-        xrange = 2 * self._range * 1e3
+        #xrange = 2 * self._range * 1e3
+        xrange = (self._range - self._offset) * 1e3
         xmin = .01 * self.lld_box.value() * xrange
         xmax = .01 * self.uld_box.value() * xrange
         if xmax < xmin:
