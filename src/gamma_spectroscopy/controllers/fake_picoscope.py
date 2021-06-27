@@ -14,8 +14,6 @@ import time
 
 import numpy as np
 
-from .picoscope_5000a import callback_factory
-
 
 class FakePicoScope:
     """Interface to a fake 5000 Series PicoScope.
@@ -278,3 +276,14 @@ class FakePicoScope:
         else:
             pulseheight = np.random.normal(511e-3, scale=30e-3)
         return pulseheight
+
+
+def callback_factory(event):
+    """Return callback that will signal event when called."""
+
+    @ctypes.CFUNCTYPE(None, ctypes.c_int16, ctypes.c_int, ctypes.c_void_p)
+    def data_is_ready_callback(handle, status, parameters):
+        """Signal that data is ready when called by PicoSDK."""
+        event.set()
+
+    return data_is_ready_callback
