@@ -18,27 +18,29 @@ from picosdk.constants import PICO_STATUS_LOOKUP
 
 
 INPUT_RANGES = {
-    0.01: '10mV',
-    0.02: '20mV',
-    0.05: '50mV',
-    0.1: '100mV',
-    0.2: '200mV',
-    0.5: '500mV',
-    1: '1V',
-    2: '2V',
-    5: '5V',
-    10: '10V',
-    20: '20V',
+    0.01: "10mV",
+    0.02: "20mV",
+    0.05: "50mV",
+    0.1: "100mV",
+    0.2: "200mV",
+    0.5: "500mV",
+    1: "1V",
+    2: "2V",
+    5: "5V",
+    10: "10V",
+    20: "20V",
 }
 
 
 class InvalidParameterError(Exception):
     """Error because of an invalid parameter."""
+
     pass
 
 
 class PicoSDKError(Exception):
     """Error returned from PicoSDK."""
+
     pass
 
 
@@ -85,11 +87,12 @@ class PicoScope5000A:
         Set the oscilloscope trigger condition
 
     """
+
     _handle = None
 
     def __init__(self, serial=None, resolution_bits=12):
         """Instantiate the class and open the device."""
-        self._channels_enabled = {'A': True, 'B': True}
+        self._channels_enabled = {"A": True, "B": True}
         self._input_voltage_ranges = {}
         self._input_offsets = {}
         self._input_adc_ranges = {}
@@ -117,21 +120,22 @@ class PicoScope5000A:
 
         if status_msg == "PICO_OK":
             self._handle = handle
-        elif status_msg == 'PICO_NOT_FOUND':
+        elif status_msg == "PICO_NOT_FOUND":
             raise DeviceNotFoundError()
         else:
             raise PicoSDKError(f"PicoSDK returned {status_msg}")
 
-        self.set_channel('A', is_enabled=False)
-        self.set_channel('B', is_enabled=False)
+        self.set_channel("A", is_enabled=False)
+        self.set_channel("B", is_enabled=False)
 
     def close(self):
         """Close the device."""
         assert_pico_ok(ps.ps5000aCloseUnit(self._handle))
         self._handle = None
 
-    def set_channel(self, channel_name, coupling_type='DC', range_value=1,
-                    offset=0, is_enabled=True):
+    def set_channel(
+        self, channel_name, coupling_type="DC", range_value=1, offset=0, is_enabled=True
+    ):
         """Set up input channels.
 
         :param channel_name: channel name ('A', 'B', etc.)
@@ -148,19 +152,22 @@ class PicoScope5000A:
         channel = _get_channel_from_name(channel_name)
         coupling_type = _get_coupling_type_from_name(coupling_type)
         range = _get_range_from_value(range_value)
-        assert_pico_ok(ps.ps5000aSetChannel(self._handle, channel, is_enabled,
-                                            coupling_type, range, offset))
+        assert_pico_ok(
+            ps.ps5000aSetChannel(
+                self._handle, channel, is_enabled, coupling_type, range, offset
+            )
+        )
 
         self._input_voltage_ranges[channel_name] = float(range_value)
         self._input_offsets[channel_name] = float(offset)
         max_adc_value = ctypes.c_int16()
-        assert_pico_ok(ps.ps5000aMaximumValue(self._handle,
-                                              ctypes.byref(max_adc_value)))
+        assert_pico_ok(
+            ps.ps5000aMaximumValue(self._handle, ctypes.byref(max_adc_value))
+        )
         self._input_adc_ranges[channel_name] = max_adc_value.value
         self._channels_enabled[channel_name] = is_enabled
 
-    def measure(self, num_pre_samples, num_post_samples, timebase=4,
-                num_captures=1):
+    def measure(self, num_pre_samples, num_post_samples, timebase=4, num_captures=1):
         """Start a data collection run and return the data.
 
         Start a data collection run and collect a number of captures. The data
@@ -175,8 +182,9 @@ class PicoScope5000A:
 
         :returns: time_values, data
         """
-        data = self.measure_adc_values(num_pre_samples, num_post_samples,
-                                       timebase, num_captures)
+        data = self.measure_adc_values(
+            num_pre_samples, num_post_samples, timebase, num_captures
+        )
 
         num_samples = num_pre_samples + num_post_samples
         time_values = self._calculate_time_values(timebase, num_samples)
@@ -184,15 +192,15 @@ class PicoScope5000A:
         V_data = []
         for channel, values in zip(self._channels_enabled, data):
             if self._channels_enabled[channel] is True:
-                V_data.append(self._rescale_adc_to_V(channel,
-                                                     np.array(values)))
+                V_data.append(self._rescale_adc_to_V(channel, np.array(values)))
             else:
                 V_data.append(None)
 
         return time_values, V_data
 
-    def measure_adc_values(self, num_pre_samples, num_post_samples, timebase=4,
-                           num_captures=1):
+    def measure_adc_values(
+        self, num_pre_samples, num_post_samples, timebase=4, num_captures=1
+    ):
         """Start a data collection run and return the data in ADC values.
 
         Start a data collection run in 'rapid block mode' and collect a number
@@ -208,8 +216,7 @@ class PicoScope5000A:
         """
         num_samples = num_pre_samples + num_post_samples
         self.set_up_buffers(num_samples, num_captures)
-        self.start_run(num_pre_samples, num_post_samples, timebase,
-                       num_captures)
+        self.start_run(num_pre_samples, num_post_samples, timebase, num_captures)
         self.wait_for_data()
         values = self._get_values(num_samples, num_captures)
 
@@ -240,14 +247,12 @@ class PicoScope5000A:
         data = self.get_adc_data()
         if data is None:
             return None, [None, None]
-        time_values = self._calculate_time_values(self._timebase,
-                                                  self._num_samples)
+        time_values = self._calculate_time_values(self._timebase, self._num_samples)
 
         V_data = []
         for channel, values in zip(self._channels_enabled, data):
             if self._channels_enabled[channel] is True:
-                V_data.append(self._rescale_adc_to_V(channel,
-                                                     np.array(values)))
+                V_data.append(self._rescale_adc_to_V(channel, np.array(values)))
             else:
                 V_data.append(None)
 
@@ -293,9 +298,11 @@ class PicoScope5000A:
         :returns: sampling interval in nanoseconds
         """
         interval = ctypes.c_float()
-        assert_pico_ok(ps.ps5000aGetTimebase2(
-            self._handle, timebase, num_samples, ctypes.byref(interval), None,
-            0))
+        assert_pico_ok(
+            ps.ps5000aGetTimebase2(
+                self._handle, timebase, num_samples, ctypes.byref(interval), None, 0
+            )
+        )
         return interval.value
 
     def _set_memory_segments(self, num_segments, num_samples):
@@ -310,13 +317,17 @@ class PicoScope5000A:
         :param num_samples: the number of required samples per capture.
         """
         max_samples = ctypes.c_int32()
-        assert_pico_ok(ps.ps5000aMemorySegments(self._handle, num_segments,
-                                                ctypes.byref(max_samples)))
+        assert_pico_ok(
+            ps.ps5000aMemorySegments(
+                self._handle, num_segments, ctypes.byref(max_samples)
+            )
+        )
         max_samples = max_samples.value
         if max_samples < num_samples:
             raise InvalidParameterError(
                 f"A memory segment can only fit {max_samples}, but "
-                f"{num_samples} are required.")
+                f"{num_samples} are required."
+            )
 
     def _set_data_buffer(self, channel_name, num_samples, num_captures=1):
         """Set up data buffer.
@@ -326,16 +337,29 @@ class PicoScope5000A:
         :param num_captures: number of captures
         """
         channel = _get_channel_from_name(channel_name)
-        self._buffers[channel_name] = [(ctypes.c_int16 * num_samples)() for
-                                       i in range(num_captures)]
+        self._buffers[channel_name] = [
+            (ctypes.c_int16 * num_samples)() for i in range(num_captures)
+        ]
         for segment in range(num_captures):
-            assert_pico_ok(ps.ps5000aSetDataBuffer(
-                self._handle, channel, ctypes.byref(
-                    self._buffers[channel_name][segment]), num_samples,
-                    segment, 0))
+            assert_pico_ok(
+                ps.ps5000aSetDataBuffer(
+                    self._handle,
+                    channel,
+                    ctypes.byref(self._buffers[channel_name][segment]),
+                    num_samples,
+                    segment,
+                    0,
+                )
+            )
 
-    def start_run(self, num_pre_samples, num_post_samples, timebase=4,
-                  num_captures=1, callback=None):
+    def start_run(
+        self,
+        num_pre_samples,
+        num_post_samples,
+        timebase=4,
+        num_captures=1,
+        callback=None,
+    ):
         """Start a run in (rapid) block mode.
 
         Start a data collection run in 'rapid block mode' and collect a number
@@ -366,9 +390,18 @@ class PicoScope5000A:
         self.data_is_ready.clear()
 
         assert_pico_ok(ps.ps5000aSetNoOfCaptures(self._handle, num_captures))
-        assert_pico_ok(ps.ps5000aRunBlock(
-            self._handle, num_pre_samples, num_post_samples, timebase, None, 0,
-            callback, None))
+        assert_pico_ok(
+            ps.ps5000aRunBlock(
+                self._handle,
+                num_pre_samples,
+                num_post_samples,
+                timebase,
+                None,
+                0,
+                callback,
+                None,
+            )
+        )
 
     def wait_for_data(self):
         """Wait for device to finish data capture."""
@@ -380,13 +413,21 @@ class PicoScope5000A:
         overflow = (ctypes.c_int16 * num_captures)()
 
         status = ps.ps5000aGetValuesBulk(
-            self._handle, ctypes.byref(num_samples), 0, num_captures - 1, 0, 0,
-            ctypes.byref(overflow))
+            self._handle,
+            ctypes.byref(num_samples),
+            0,
+            num_captures - 1,
+            0,
+            0,
+            ctypes.byref(overflow),
+        )
         status_msg = PICO_STATUS_LOOKUP[status]
 
         if status_msg == "PICO_OK":
-            return [self._buffers[channel] if is_enabled is True else None
-                    for channel, is_enabled in self._channels_enabled.items()]
+            return [
+                self._buffers[channel] if is_enabled is True else None
+                for channel, is_enabled in self._channels_enabled.items()
+            ]
         elif status_msg == "PICO_NO_SAMPLES_AVAILABLE":
             return None
         else:
@@ -396,8 +437,15 @@ class PicoScope5000A:
         """Stop data capture."""
         assert_pico_ok(ps.ps5000aStop(self._handle))
 
-    def set_trigger(self, channel_name, threshold=0., direction='RISING',
-                    is_enabled=True, delay=0, auto_trigger=0):
+    def set_trigger(
+        self,
+        channel_name,
+        threshold=0.0,
+        direction="RISING",
+        is_enabled=True,
+        delay=0,
+        auto_trigger=0,
+    ):
         """Set the oscilloscope trigger condition.
 
         :param channel_name: the source channel for the trigger (e.g. 'A')
@@ -416,14 +464,25 @@ class PicoScope5000A:
         channel = _get_channel_from_name(channel_name)
         threshold = self._rescale_V_to_adc(channel_name, threshold)
         direction = _get_trigger_direction_from_name(direction)
-        assert_pico_ok(ps.ps5000aSetSimpleTrigger(
-            self._handle, is_enabled, channel, threshold, direction, delay,
-            auto_trigger))
+        assert_pico_ok(
+            ps.ps5000aSetSimpleTrigger(
+                self._handle,
+                is_enabled,
+                channel,
+                threshold,
+                direction,
+                delay,
+                auto_trigger,
+            )
+        )
 
     def _get_enabled_channels(self):
         """Return list of enabled channels."""
-        return [channel for channel, status in self._channels_enabled.items()
-                if status is True]
+        return [
+            channel
+            for channel, status in self._channels_enabled.items()
+            if status is True
+        ]
 
 
 def _get_resolution_from_bits(resolution_bits):
@@ -431,14 +490,15 @@ def _get_resolution_from_bits(resolution_bits):
     if resolution_bits in [8, 12, 14, 15, 16]:
         def_name = f"PS5000A_DR_{resolution_bits}BIT"
     else:
-        raise InvalidParameterError(f"A resolution of {resolution_bits}-bits "
-                                    "is not supported")
+        raise InvalidParameterError(
+            f"A resolution of {resolution_bits}-bits " "is not supported"
+        )
     return ps.PS5000A_DEVICE_RESOLUTION[def_name]
 
 
 def _get_channel_from_name(channel_name):
     """Return the channel from the channel name."""
-    if channel_name in ['A', 'B', 'C', 'D']:
+    if channel_name in ["A", "B", "C", "D"]:
         def_name = f"PS5000A_CHANNEL_{channel_name}"
     else:
         raise InvalidParameterError(f"Channel {channel_name} is not supported")
@@ -447,11 +507,12 @@ def _get_channel_from_name(channel_name):
 
 def _get_coupling_type_from_name(coupling_type_name):
     """Return the coupling type from the coupling type name."""
-    if coupling_type_name in ['AC', 'DC']:
+    if coupling_type_name in ["AC", "DC"]:
         def_name = f"PS5000A_{coupling_type_name}"
     else:
-        raise InvalidParameterError(f"Coupling type {coupling_type_name} is "
-                                    "not supported")
+        raise InvalidParameterError(
+            f"Coupling type {coupling_type_name} is " "not supported"
+        )
     return ps.PS5000A_COUPLING[def_name]
 
 
@@ -467,19 +528,21 @@ def _get_range_from_value(range):
 
 def _get_trigger_direction_from_name(direction_name):
     """Return the trigger direction from the direction name."""
-    if direction_name in ['ABOVE', 'BELOW', 'RISING', 'FALLING',
-                          'RISING_OR_FALLING']:
+    if direction_name in ["ABOVE", "BELOW", "RISING", "FALLING", "RISING_OR_FALLING"]:
         def_name = f"PS5000A_{direction_name}"
     else:
-        raise InvalidParameterError(f"Trigger direction {direction_name} is "
-                                    "not supported")
+        raise InvalidParameterError(
+            f"Trigger direction {direction_name} is " "not supported"
+        )
     return ps.PS5000A_THRESHOLD_DIRECTION[def_name]
 
 
 def callback_factory(event):
     """Return callback that will signal event when called."""
+
     @ctypes.CFUNCTYPE(None, ctypes.c_int16, ctypes.c_int, ctypes.c_void_p)
     def data_is_ready_callback(handle, status, parameters):
         """Signal that data is ready when called by PicoSDK."""
         event.set()
+
     return data_is_ready_callback
