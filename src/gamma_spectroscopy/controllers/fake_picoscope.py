@@ -14,8 +14,6 @@ import time
 
 import numpy as np
 
-from .picoscope_5000a import callback_factory
-
 
 class FakePicoScope:
     """Interface to a fake 5000 Series PicoScope.
@@ -53,9 +51,10 @@ class FakePicoScope:
         Set the oscilloscope trigger condition
 
     """
+
     def __init__(self, serial=None, resolution_bits=12):
         """Instantiate the class and open the device."""
-        self._channels_enabled = {'A': True, 'B': True}
+        self._channels_enabled = {"A": True, "B": True}
         self._input_voltage_ranges = {}
         self._input_offsets = {}
         self._input_adc_ranges = {}
@@ -71,15 +70,16 @@ class FakePicoScope:
         :param serial: (optional) Serial number of the device
         :param resolution_bits: vertical resolution in number of bits
         """
-        self.set_channel('A', is_enabled=False)
-        self.set_channel('B', is_enabled=False)
+        self.set_channel("A", is_enabled=False)
+        self.set_channel("B", is_enabled=False)
 
     def close(self):
         """Close the device."""
         pass
 
-    def set_channel(self, channel_name, coupling_type='DC', range_value=1,
-                    offset=0, is_enabled=True):
+    def set_channel(
+        self, channel_name, coupling_type="DC", range_value=1, offset=0, is_enabled=True
+    ):
         """Set up input channels.
 
         :param channel_name: channel name ('A', 'B', etc.)
@@ -96,12 +96,12 @@ class FakePicoScope:
         self._range = range_value
         self._offset = offset
 
-    def measure(self, num_pre_samples, num_post_samples, timebase=4,
-                num_captures=1):
+    def measure(self, num_pre_samples, num_post_samples, timebase=4, num_captures=1):
         raise NotImplementedError
 
-    def measure_adc_values(self, num_pre_samples, num_post_samples, timebase=4,
-                           num_captures=1):
+    def measure_adc_values(
+        self, num_pre_samples, num_post_samples, timebase=4, num_captures=1
+    ):
         raise NotImplementedError
 
     def set_up_buffers(self, num_samples, num_captures=1):
@@ -122,8 +122,7 @@ class FakePicoScope:
         captured data (in Volts).
 
         """
-        time_values = self._calculate_time_values(self._timebase,
-                                                  self._num_samples)
+        time_values = self._calculate_time_values(self._timebase, self._num_samples)
 
         V_data = []
         for channel in self._channels_enabled:
@@ -151,8 +150,14 @@ class FakePicoScope:
         else:
             return (timebase - 3) / 62.5e6 * 1e9
 
-    def start_run(self, num_pre_samples, num_post_samples, timebase=4,
-                  num_captures=1, callback=None):
+    def start_run(
+        self,
+        num_pre_samples,
+        num_post_samples,
+        timebase=4,
+        num_captures=1,
+        callback=None,
+    ):
         """Start a run in (rapid) block mode.
 
         Start a data collection run in 'rapid block mode' and collect a number
@@ -190,14 +195,13 @@ class FakePicoScope:
         self._callback = callback
 
         if self._is_trigger_enabled:
-            wait_time = np.random.exponential(scale=1 / 100.,
-                                              size=num_captures).sum()
+            wait_time = np.random.exponential(scale=1 / 100.0, size=num_captures).sum()
         else:
-            wait_time = .001 * num_captures
+            wait_time = 0.001 * num_captures
 
-        self._timer = Timer(wait_time, callback,
-                            (ctypes.c_int16(), ctypes.c_int(),
-                             ctypes.c_void_p()))
+        self._timer = Timer(
+            wait_time, callback, (ctypes.c_int16(), ctypes.c_int(), ctypes.c_void_p())
+        )
         self._timer.start()
 
     def wait_for_data(self):
@@ -211,8 +215,15 @@ class FakePicoScope:
             self._callback(ctypes.c_int16(), ctypes.c_int(), ctypes.c_void_p())
             pass
 
-    def set_trigger(self, channel_name, threshold=0., direction='RISING',
-                    is_enabled=True, delay=0, auto_trigger=0):
+    def set_trigger(
+        self,
+        channel_name,
+        threshold=0.0,
+        direction="RISING",
+        is_enabled=True,
+        delay=0,
+        auto_trigger=0,
+    ):
         """Set the oscilloscope trigger condition.
 
         :param channel_name: the source channel for the trigger (e.g. 'A')
@@ -251,10 +262,10 @@ class FakePicoScope:
                 offset = np.random.randint(0, self._num_samples - 1)
             else:
                 offset = 0
-            if np.random.random() < .1:
+            if np.random.random() < 0.1:
                 pulseheight = self._fake_pulseheight_from_spectrum()
             else:
-                pulseheight = 0.
+                pulseheight = 0.0
 
         signal = -pulseheight * np.exp(-60e3 * t)
         baseline = np.random.normal(scale=10e-3, loc=5e-3)
@@ -273,8 +284,19 @@ class FakePicoScope:
         return event
 
     def _fake_pulseheight_from_spectrum(self):
-        if np.random.random() <= .25:
+        if np.random.random() <= 0.25:
             pulseheight = np.random.normal(1274e-3, scale=75e-3)
         else:
             pulseheight = np.random.normal(511e-3, scale=30e-3)
         return pulseheight
+
+
+def callback_factory(event):
+    """Return callback that will signal event when called."""
+
+    @ctypes.CFUNCTYPE(None, ctypes.c_int16, ctypes.c_int, ctypes.c_void_p)
+    def data_is_ready_callback(handle, status, parameters):
+        """Signal that data is ready when called by PicoSDK."""
+        event.set()
+
+    return data_is_ready_callback
