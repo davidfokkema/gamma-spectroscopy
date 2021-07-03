@@ -365,7 +365,7 @@
           </item>
           <item>
            <property name="text">
-            <string>Both</string>
+            <string>A OR B</string>
            </property>
           </item>
          </widget>

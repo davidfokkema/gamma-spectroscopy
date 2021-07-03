@@ -420,9 +420,10 @@ class PicoScope5000A:
             self._handle, is_enabled, channel, threshold, direction, delay,
             auto_trigger))
 
-    def set_trigger_both(self, threshold=0., direction='RISING',
+
+    def set_trigger_A_OR_B(self, threshold=0., direction='RISING',
                          is_enabled=True):
-        """Set the oscilloscope to trigger on both channels.
+        """Set the oscilloscope to trigger on A OR B (logical OR).
 
         :param threshold: the trigger threshold (in V)
         :param direction: the direction in which the signal must move to cause
@@ -473,6 +474,7 @@ class PicoScope5000A:
         else:
             assert_pico_ok(ps.ps5000aSetTriggerChannelConditionsV2(self._handle,
                                         ctypes.byref(trigConditionA), 0, clear))
+
 
     def _get_enabled_channels(self):
         """Return list of enabled channels."""

@@ -229,8 +229,8 @@ class UserInterface(QtWidgets.QMainWindow):
             if self._write_output:
                 self.open_output_file()
                 writer = csv.writer(self._output_file)
-                writer.writerow(('trigger_time_A','pulse_height_A',
-                                 'trigger_time_B','pulse_height_B'))
+                writer.writerow(('time_A','pulse_height_A',
+                                 'time_B','pulse_height_B'))
 
     def stop_run(self):
         self._is_running = False
@@ -283,7 +283,7 @@ class UserInterface(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(int)
     def set_upper_trigger_state(self, state):
-        if not self._trigger_channel == 'Both':
+        if not self._trigger_channel == 'A OR B':
             self._is_upper_threshold_enabled = state
             self.scope.stop()
 
@@ -316,11 +316,11 @@ class UserInterface(QtWidgets.QMainWindow):
 
     def set_trigger(self):
         edge = 'RISING' if self._pulse_polarity == 'Positive' else 'FALLING'
-        if self.trigger_channel_box.currentText() == 'Both':
-            self._trigger_channel = 'Both'
-            self.scope.set_trigger_both(self._polarity_sign * self._threshold,
-                                        edge,
-                                        is_enabled=self._is_trigger_enabled)
+        if self.trigger_channel_box.currentText() == 'A OR B':
+            self._trigger_channel = 'A OR B'
+            self.scope.set_trigger_A_OR_B(self._polarity_sign * self._threshold,
+                                          edge,
+                                          is_enabled=self._is_trigger_enabled)
             self._upper_trigger_state = False
             self.upper_trigger_box.setCheckable(False)
         else:
@@ -456,7 +456,7 @@ class UserInterface(QtWidgets.QMainWindow):
                 writer.writerow(row)
 
         if self._is_upper_threshold_enabled:
-            if not self._trigger_channel == 'Both':
+            if not self._trigger_channel == 'A OR B':
                 channel_idx = ['A', 'B'].index(self._trigger_channel)
                 condition = (pulseheights[channel_idx, :]
                             <= self._upper_threshold * 1e3)
@@ -521,7 +521,7 @@ class UserInterface(QtWidgets.QMainWindow):
         if self._is_trigger_enabled:
             self.draw_guide(plot, self._threshold, 'green')
         if self._is_upper_threshold_enabled \
-           and not self._trigger_channel == 'Both':
+           and not self._trigger_channel == 'A OR B':
             self.draw_guide(plot, self._upper_threshold, 'green')
 
     def draw_guide(self, plot, pos, color, orientation='horizontal', width=2.):
@@ -589,7 +589,7 @@ class UserInterface(QtWidgets.QMainWindow):
         self.draw_guide(plot, clip_level * 1e3, 'red', 'vertical')
 
         if self._is_upper_threshold_enabled  \
-           and not self._trigger_channel == 'Both':
+           and not self._trigger_channel == 'A OR B':
             self.draw_guide(plot, self._upper_threshold * 1e3, 'green',
                             'vertical')
 
