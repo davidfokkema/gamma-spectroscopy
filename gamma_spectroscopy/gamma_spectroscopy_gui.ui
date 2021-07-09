@@ -180,6 +180,32 @@
          </widget>
         </item>
         <item>
+         <widget class="QLabel" name="label_24">
+          <property name="text">
+           <string>Run:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="run_number_label">
+          <property name="minimumSize">
+           <size>
+            <width>30</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="text">
+           <string>0</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+          <property name="margin">
+           <number>0</number>
+          </property>
+         </widget>
+        </item>
+        <item>
          <widget class="QLabel" name="label_12">
           <property name="text">
            <string>Run time:</string>
@@ -337,26 +363,41 @@
             <string>Channel B</string>
            </property>
           </item>
+          <item>
+           <property name="text">
+            <string>A OR B</string>
+           </property>
+          </item>
          </widget>
         </item>
         <item row="7" column="0">
          <widget class="QLabel" name="label_14">
           <property name="text">
-           <string>Pulse polarity:</string>
+           <string>Coupling:</string>
           </property>
          </widget>
         </item>
         <item row="7" column="1">
-         <widget class="QComboBox" name="polarity_box"/>
+         <widget class="QComboBox" name="coupling_box"/>
         </item>
         <item row="8" column="0">
+         <widget class="QLabel" name="label_15">
+          <property name="text">
+           <string>Pulse polarity:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="8" column="1">
+         <widget class="QComboBox" name="polarity_box"/>
+        </item>
+        <item row="9" column="0">
          <widget class="QLabel" name="label_7">
           <property name="text">
            <string>Timebase:</string>
           </property>
          </widget>
         </item>
-        <item row="8" column="1">
+        <item row="9" column="1">
          <widget class="QSpinBox" name="timebase_box">
           <property name="minimum">
            <number>2</number>
@@ -365,32 +406,32 @@
            <number>65535</number>
           </property>
           <property name="value">
-           <number>2000</number>
+           <number>20</number>
           </property>
          </widget>
         </item>
-        <item row="9" column="0">
+        <item row="10" column="0">
          <widget class="QLabel" name="label_8">
           <property name="text">
            <string>Sampling time:</string>
           </property>
          </widget>
         </item>
-        <item row="9" column="1">
+        <item row="10" column="1">
          <widget class="QLabel" name="sampling_time_label">
           <property name="text">
            <string>0 μs</string>
           </property>
          </widget>
         </item>
-        <item row="10" column="0">
+        <item row="11" column="0">
          <widget class="QLabel" name="label_5">
           <property name="text">
            <string>Pre-trigger window:</string>
           </property>
          </widget>
         </item>
-        <item row="10" column="1">
+        <item row="11" column="1">
          <widget class="QDoubleSpinBox" name="pre_trigger_box">
           <property name="suffix">
            <string> μs</string>
@@ -399,21 +440,21 @@
            <number>3</number>
           </property>
           <property name="maximum">
-           <double>1000000.000000000000000</double>
+           <double>100000.000000000000000</double>
           </property>
           <property name="value">
-           <double>1000.000000000000000</double>
+           <double>10.000000000000000</double>
           </property>
          </widget>
         </item>
-        <item row="11" column="0">
+        <item row="12" column="0">
          <widget class="QLabel" name="label_6">
           <property name="text">
            <string>Post-trigger window:</string>
           </property>
          </widget>
         </item>
-        <item row="11" column="1">
+        <item row="12" column="1">
          <widget class="QDoubleSpinBox" name="post_trigger_box">
           <property name="suffix">
            <string> μs</string>
@@ -425,32 +466,32 @@
            <double>1000000.000000000000000</double>
           </property>
           <property name="value">
-           <double>1000.000000000000000</double>
+           <double>10.000000000000000</double>
           </property>
          </widget>
         </item>
-        <item row="12" column="0">
+        <item row="13" column="0">
          <widget class="QLabel" name="label_9">
           <property name="text">
            <string>Number of samples:</string>
           </property>
          </widget>
         </item>
-        <item row="12" column="1">
+        <item row="13" column="1">
          <widget class="QLabel" name="num_samples_label">
           <property name="text">
            <string>2</string>
           </property>
          </widget>
         </item>
-        <item row="13" column="0">
+        <item row="14" column="0">
          <widget class="QLabel" name="label_13">
           <property name="text">
            <string>Number of captures:</string>
           </property>
          </widget>
         </item>
-        <item row="13" column="1">
+        <item row="14" column="1">
          <widget class="QSpinBox" name="num_captures_box">
           <property name="minimum">
            <number>1</number>
@@ -460,32 +501,15 @@
           </property>
          </widget>
         </item>
-        <item row="14" column="0">
-         <widget class="QLabel" name="label_15">
+        <item row="15" column="0">
+         <widget class="QLabel" name="label_16">
           <property name="text">
            <string>Baseline correction:</string>
           </property>
          </widget>
         </item>
-        <item row="14" column="1">
-         <widget class="QCheckBox" name="baseline_correction_box">
-          <property name="text">
-           <string/>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item row="15" column="0">
-         <widget class="QLabel" name="label_17">
-          <property name="text">
-           <string>Show channel A:</string>
-          </property>
-         </widget>
-        </item>
         <item row="15" column="1">
-         <widget class="QCheckBox" name="ch_A_enabled_box">
+         <widget class="QCheckBox" name="baseline_correction_box">
           <property name="text">
            <string/>
           </property>
@@ -497,25 +521,42 @@
         <item row="16" column="0">
          <widget class="QLabel" name="label_18">
           <property name="text">
-           <string>Show channel B:</string>
+           <string>Show channel A:</string>
           </property>
          </widget>
         </item>
         <item row="16" column="1">
+         <widget class="QCheckBox" name="ch_A_enabled_box">
+          <property name="text">
+           <string/>
+          </property>
+          <property name="checked">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item row="17" column="0">
+         <widget class="QLabel" name="label_19">
+          <property name="text">
+           <string>Show channel B:</string>
+          </property>
+         </widget>
+        </item>
+        <item row="17" column="1">
          <widget class="QCheckBox" name="ch_B_enabled_box">
           <property name="text">
            <string/>
           </property>
          </widget>
         </item>
-        <item row="19" column="0">
-         <widget class="QLabel" name="label_19">
+        <item row="20" column="0">
+         <widget class="QLabel" name="label_20">
           <property name="text">
            <string>Lower level discriminator:</string>
           </property>
          </widget>
         </item>
-        <item row="19" column="1">
+        <item row="20" column="1">
          <widget class="QDoubleSpinBox" name="lld_box">
           <property name="suffix">
            <string>%</string>
@@ -525,14 +566,14 @@
           </property>
          </widget>
         </item>
-        <item row="20" column="0">
-         <widget class="QLabel" name="label_20">
+        <item row="21" column="0">
+         <widget class="QLabel" name="label_21">
           <property name="text">
            <string>Upper level discriminator:</string>
           </property>
          </widget>
         </item>
-        <item row="20" column="1">
+        <item row="21" column="1">
          <widget class="QDoubleSpinBox" name="uld_box">
           <property name="suffix">
            <string>%</string>
@@ -545,38 +586,38 @@
           </property>
          </widget>
         </item>
-        <item row="21" column="0">
-         <widget class="QLabel" name="label_21">
+        <item row="22" column="0">
+         <widget class="QLabel" name="label_22">
           <property name="text">
            <string>Histogram bins:</string>
           </property>
          </widget>
         </item>
-        <item row="21" column="1">
+        <item row="22" column="1">
          <widget class="QSpinBox" name="num_bins_box">
           <property name="maximum">
            <number>4095</number>
           </property>
           <property name="value">
-           <number>100</number>
+           <number>256</number>
           </property>
          </widget>
         </item>
-        <item row="18" column="1">
+        <item row="19" column="1">
          <widget class="QCheckBox" name="upper_trigger_box">
           <property name="text">
            <string/>
           </property>
          </widget>
         </item>
-        <item row="18" column="0">
-         <widget class="QLabel" name="label_22">
+        <item row="19" column="0">
+         <widget class="QLabel" name="label_23">
           <property name="text">
            <string>Enable upper threshold</string>
           </property>
          </widget>
         </item>
-        <item row="17" column="1">
+        <item row="18" column="1">
          <widget class="QDoubleSpinBox" name="upper_threshold_box">
           <property name="suffix">
            <string> V</string>
@@ -598,7 +639,7 @@
           </property>
          </widget>
         </item>
-        <item row="17" column="0">
+        <item row="18" column="0">
          <widget class="QLabel" name="label_10">
           <property name="text">
            <string>Upper threshold (SW):</string>
