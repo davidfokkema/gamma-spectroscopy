@@ -14,13 +14,19 @@ setuptools.setup(
     url="https://github.com/davidfokkema/gamma-spectroscopy",
     packages=setuptools.find_packages(),
     package_data={
-        '': ['*.ui'],
+        "": ["*.ui"],
     },
     entry_points={
-        'console_scripts': [
-            'gamma-spectroscopy=gamma_spectroscopy.gamma_spectroscopy_gui:main',
+        "console_scripts": [
+            "gamma-spectroscopy=gamma_spectroscopy.gamma_spectroscopy_gui:main",
         ],
     },
+    install_requires=[
+        "numpy",
+        "pyqt5==5.15.2",
+        "pyqtgraph",
+        "picosdk @ git+https://github.com/picotech/picosdk-python-wrappers.git",
+    ],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Science/Research",
