@@ -23,7 +23,7 @@ setuptools.setup(
     },
     install_requires=[
         "numpy",
-        "pyqt5==5.15.2",
+        "pyqt5",
         "pyqtgraph",
     ],
     classifiers=[
