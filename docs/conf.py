@@ -22,7 +22,7 @@ copyright = "2019-2022, David Fokkema"
 author = "David Fokkema"
 
 # The full version, including alpha/beta/rc tags
-release = "1.1.2"
+release = "1.1.4"
 
 
 # -- General configuration ---------------------------------------------------

@@ -5,7 +5,7 @@ with open("README.rst", "r") as fh:
 
 setuptools.setup(
     name="gamma-spectroscopy",
-    version="1.1.2",
+    version="1.1.4",
     author="David Fokkema",
     author_email="davidfokkema@icloud.com",
     description="A GUI for gamma spectroscopy using a PicoScope",
@@ -23,6 +23,7 @@ setuptools.setup(
     },
     install_requires=[
         "numpy",
+        "picosdk",
         "pyqt5",
         "pyqtgraph",
     ],

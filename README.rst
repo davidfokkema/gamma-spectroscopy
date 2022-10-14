@@ -32,11 +32,7 @@ Prerequisites
 * PyQt5
 * PyQtGraph
 
-To install the PicoSDK C libraries, follow the instructions at https://github.com/picotech/picosdk-python-wrappers. To install the wrapper itself, you can follow the instructions at that page or simply install from GitHub (you need to have Git installed):
-
-.. code-block:: console
-
-   $ pip install git+https://github.com/picotech/picosdk-python-wrappers
+To install the PicoSDK C libraries, follow the instructions at https://github.com/picotech/picosdk-python-wrappers.
 
 
 Gamma-spectroscopy
