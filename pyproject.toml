@@ -22,6 +22,7 @@ dependencies = [
     "picosdk",
     "pyqt5>=5.15.11",
     "pyqtgraph>=0.14.0",
+    "rich>=15.0.0",
 ]
 
 [project.scripts]
