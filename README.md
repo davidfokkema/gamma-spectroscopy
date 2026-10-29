@@ -16,38 +16,17 @@ Screenshot of the GUI showing a plot of the gamma spectrum of a nuclear source (
 
 ## Installation
 
-In this section we will cover the installation of the gamma-spectroscopy package as well as the prerequisites (see below). On Windows, first make sure that the Anaconda distribution is installed and run all command-line commands from the Anaconda Prompt application.
+You need to install the [PicoSDK](https://www.picotech.com/downloads) for your platform before you can use this application. You need to select your oscilloscope before it shows the download link.
 
-### Prerequisites
-
-* PicoSDK
-* Python wrappers for PicoSDK
-* NumPy
-* PyQt5
-* PyQtGraph
-
-To install the PicoSDK C libraries, follow the instructions at https://github.com/picotech/picosdk-python-wrappers.
-
-### Gamma-spectroscopy
-
-You can install the latest release of this package directly from PyPI:
-
+You can install the application using `pip` in any Python environment, but the recommended way to install gamma-spectroscopy is using [uv](https://docs.astral.sh/uv/):
 ```console
-$ pip install gamma-spectroscopy
+uv tool install gamma-spectroscopy
 ```
-
-or, alternatively, you can install the latest development version from GitHub:
-
+The `gamma-spectroscopy` utility is available from the terminal. You can also run the tool without installing with:
 ```console
-$ pip install git+https://github.com/davidfokkema/gamma-spectroscopy
+uvx gamma-spectroscopy
 ```
-
-## Running the application
-
-You can start the application GUI directly from the command-line (On Windows, first start the Anaconda Prompt application to get to the command-line):
-
+This has the benefit that you're always using the latest version. To run the development version directly from GitHub, run:
 ```console
-$ gamma-spectroscopy
+uvx git+https://github.com/davidfokkema/gamma-spectroscopy
 ```
-
-We will look into ways to include gamma-spectroscopy in Anaconda Navigator or as a stand-alone application so you don't first have to start a console.
