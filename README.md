@@ -1,8 +1,6 @@
-A GUI for gamma spectroscopy using a PicoScope
-==============================================
+# A GUI for gamma spectroscopy using a PicoScope
 
-Introduction
-------------
+## Introduction
 
 This is a data acquisition app for gamma spectroscopy. The Qt app requires a 5000-series PicoScope (e.g. the 5242D) for data acquisition.
 
@@ -12,19 +10,15 @@ Typically, a gamma detector (e.g. a NaI-scintillator/PMT or HPGe-detector) is co
 
 We've decided to replace all NIM modules with a single PicoScope device. This is a digital oscilloscope which is connected over USB to a PC or laptop. Using the SDK it is easy to interface with the device and to write custom software for use by our students.
 
-.. figure:: images/screenshot-spectrum.png
-   :alt: screenshot showing a spectrum plot
+![screenshot showing a spectrum plot](images/screenshot-spectrum.png)
 
-   Screenshot of the GUI showing a plot of the gamma spectrum of a nuclear source (sodium-22, black line). Another detector at the opposite side of the source picks up coincident annihilation radiation gammas.
+Screenshot of the GUI showing a plot of the gamma spectrum of a nuclear source (sodium-22, black line). Another detector at the opposite side of the source picks up coincident annihilation radiation gammas.
 
-
-Installation
-------------
+## Installation
 
 In this section we will cover the installation of the gamma-spectroscopy package as well as the prerequisites (see below). On Windows, first make sure that the Anaconda distribution is installed and run all command-line commands from the Anaconda Prompt application.
 
-Prerequisites
-^^^^^^^^^^^^^
+### Prerequisites
 
 * PicoSDK
 * Python wrappers for PicoSDK
@@ -34,30 +28,26 @@ Prerequisites
 
 To install the PicoSDK C libraries, follow the instructions at https://github.com/picotech/picosdk-python-wrappers.
 
-
-Gamma-spectroscopy
-^^^^^^^^^^^^^^^^^^
+### Gamma-spectroscopy
 
 You can install the latest release of this package directly from PyPI:
 
-.. code-block:: console
-
-   $ pip install gamma-spectroscopy
+```console
+$ pip install gamma-spectroscopy
+```
 
 or, alternatively, you can install the latest development version from GitHub:
 
-.. code-block:: console
+```console
+$ pip install git+https://github.com/davidfokkema/gamma-spectroscopy
+```
 
-   $ pip install git+https://github.com/davidfokkema/gamma-spectroscopy
-
-
-Running the application
------------------------
+## Running the application
 
 You can start the application GUI directly from the command-line (On Windows, first start the Anaconda Prompt application to get to the command-line):
 
-.. code-block:: console
-
-   $ gamma-spectroscopy
+```console
+$ gamma-spectroscopy
+```
 
 We will look into ways to include gamma-spectroscopy in Anaconda Navigator or as a stand-alone application so you don't first have to start a console.
