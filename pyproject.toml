@@ -1,10 +1,20 @@
 [project]
 name = "gamma-spectroscopy"
-version = "0.1.0"
-description = "Add your description here"
+version = "1.2.0"
+description = "A GUI for gamma spectroscopy using a PicoScope"
 readme = "README.md"
 authors = [
     { name = "David Fokkema", email = "davidfokkema@icloud.com" },
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
 ]
 requires-python = ">=3.14"
 dependencies = [
