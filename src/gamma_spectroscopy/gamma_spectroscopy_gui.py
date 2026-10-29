@@ -7,7 +7,7 @@ from pathlib import Path
 import time
 
 import numpy as np
-from pkg_resources import resource_filename
+from importlib.resources import files
 
 from PyQt5 import uic, QtWidgets, QtCore
 import pyqtgraph as pg
@@ -117,8 +117,7 @@ class UserInterface(QtWidgets.QMainWindow):
         pg.setConfigOption('foreground', 'w')
         pg.setConfigOption('antialias', True)
 
-        ui_path = resource_filename('gamma_spectroscopy',
-                                    'gamma_spectroscopy_gui.ui')
+        ui_path = str(files('gamma_spectroscopy') / 'gamma_spectroscopy_gui.ui')
         layout = uic.loadUi(ui_path, self)
 
         # Menubar
